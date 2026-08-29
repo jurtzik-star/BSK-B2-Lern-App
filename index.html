@@ -9351,6 +9351,65 @@ function pt2RenderKiFeedbackBox(boxEl, feedback) {
   boxEl.style.display = "block";
 }
 
+/* ---------- KI-Rückmeldung für Aufgabe 42-45 (Telefonnotiz) ----------
+   Nur bei Modelltest A möglich (dort gibt es eine echte Musterlösung, siehe
+   hs.musterloesung) - bei Modelltest B bewerten auch im Original nur
+   Menschen, dafür gibt es hier bewusst keinen KI-Button. Nutzt denselben
+   Worker wie Aufgabe 21, aber im "notiz"-Modus (Faktencheck statt
+   Aufsatz-Bewertung nach Rubric - siehe worker.js buildNotizSystemPrompt). */
+const PT2_NOTIZ_FELDER = { 42: "Name", 43: "Kontakt", 44: "Weitere Informationen", 45: "Zu erledigen" };
+
+async function pt2RequestNotizFeedback(btn, statusEl, boxEl, musterloesung) {
+  const werte = {};
+  [42, 43, 44, 45].forEach(n => { werte[n] = (document.getElementById("pt2-notiz-" + n).value || "").trim(); });
+  const gesamtLaenge = Object.values(werte).join("").length;
+  if (gesamtLaenge < 5) {
+    statusEl.textContent = "Bitte trage zuerst deine Notizen ein, bevor du eine KI-Rückmeldung anforderst.";
+    statusEl.classList.remove("pt-ok");
+    return;
+  }
+  btn.disabled = true;
+  statusEl.textContent = "Wird bewertet ...";
+  statusEl.classList.remove("pt-ok");
+  try {
+    const text = [42, 43, 44, 45].map(n => n + " " + PT2_NOTIZ_FELDER[n] + ": " + (werte[n] || "(keine Notiz)")).join("\n");
+    const response = await fetch(PT2_KI_CONFIG.WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-App-Secret": PT2_KI_CONFIG.APP_SECRET },
+      body: JSON.stringify({ mode: "notiz", text: text, aufgabe: { felder: PT2_NOTIZ_FELDER, referenzantworten: musterloesung } })
+    });
+    const raw = await response.text();
+    if (!response.ok) throw new Error("Server antwortete mit Status " + response.status);
+    const data = pt2ExtractJson(raw);
+    if (!data.feedback) throw new Error("Antwort enthielt kein Feedback.");
+    pt2State.kiFeedback.notiz = data.feedback;
+    statusEl.textContent = "";
+    pt2RenderNotizFeedbackBox(boxEl, data.feedback);
+  } catch (err) {
+    statusEl.textContent = "Die KI-Rückmeldung konnte nicht erstellt werden. Bitte prüfe deine Internetverbindung und versuche es erneut. (" + (err && err.message ? err.message : "Unbekannter Fehler") + ")";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function pt2RenderNotizFeedbackBox(boxEl, feedback) {
+  let html = "<div style='font-weight:700;margin-bottom:8px;'>🤖 KI-Rückmeldung zu deiner Telefonnotiz</div>";
+  html += "<p>" + escapeHtml(feedback.gesamteinschaetzung || "") + "</p>";
+  if (feedback.felder) {
+    const statusColor = { "richtig": "var(--green-700)", "teilweise richtig": "#8a6d1a", "falsch": "var(--red)" };
+    [42, 43, 44, 45].forEach(n => {
+      const f = feedback.felder[n];
+      if (!f) return;
+      const color = statusColor[f.status] || "var(--ink)";
+      html += "<div style='margin-top:6px;'><strong>" + n + " " + escapeHtml(PT2_NOTIZ_FELDER[n]) + ":</strong> " +
+        "<span style='color:" + color + ";font-weight:700;'>" + escapeHtml(f.status || "") + "</span><br>" +
+        escapeHtml(f.kommentar || "") + "</div>";
+    });
+  }
+  boxEl.innerHTML = html;
+  boxEl.style.display = "block";
+}
+
 /* ---- Modelltest A = exakt das Buch, S. 178-183 (Audios: audio/pt2/a-*.mp3) ---- */
 const pt2ModelltestA = {
   ls: {
@@ -9518,7 +9577,7 @@ const pt2State = {
   answers: { ls: {}, hoeren: {} },
   evaluated: { ls: false, hoeren: false },
   scores: { ls: 0, hoeren: 0 },
-  kiFeedback: { ls: null }
+  kiFeedback: { ls: null, notiz: null }
 };
 const PT2_PART_MAX = { ls: 2, hoeren: 20 };
 
@@ -9527,7 +9586,7 @@ function pt2StartTest() {
   pt2State.session = pt2AssembleSession();
   pt2State.startTime = Date.now();
   pt2State.sessionId = "pt2_" + pt2State.name + "_" + pt2State.startTime;
-  pt2State.kiFeedback = { ls: null };
+  pt2State.kiFeedback = { ls: null, notiz: null };
   document.getElementById("pt2-start-screen").classList.add("pt-hidden");
   document.getElementById("pt2-test-area").classList.remove("pt-hidden");
   pt2RenderTabs();
@@ -9878,10 +9937,19 @@ function pt2BuildHoeren() {
     revealBtn.onclick = () => { revealBox.style.display = revealBox.style.display === "none" ? "block" : "none"; };
     notizCard.appendChild(revealBtn);
     notizCard.appendChild(revealBox);
+
+    const notizKiBtn = ptEl("button", { type: "button", class: "btn-secondary", text: "🤖 KI-Rückmeldung zu meiner Notiz erhalten", style: "margin-top:10px;margin-left:8px;" });
+    const notizKiStatus = ptEl("div", { class: "pt-status-msg", style: "margin-top:8px;" });
+    const notizKiBox = ptEl("div", { class: "pt-instruction", style: "display:none;margin-top:10px;" });
+    notizKiBtn.onclick = () => pt2RequestNotizFeedback(notizKiBtn, notizKiStatus, notizKiBox, hs.musterloesung);
+    notizCard.appendChild(notizKiBtn);
+    notizCard.appendChild(notizKiStatus);
+    notizCard.appendChild(notizKiBox);
+    if (pt2State.kiFeedback.notiz) pt2RenderNotizFeedbackBox(notizKiBox, pt2State.kiFeedback.notiz);
   } else {
     notizCard.appendChild(ptEl("div", { class: "hint-text", style: "text-align:left;margin-top:10px;", text: "Für diesen Modelltest liegt keine Musterlösung vor (im Original wird diese Aufgabe von Bewertern bewertet). Besprich deine Notizen am besten mit deiner Lehrkraft." }));
   }
-  notizCard.appendChild(ptEl("div", { class: "hint-text", style: "text-align:left;margin-top:10px;", text: "Aufgabe 42-45 wird in der echten Prüfung von Bewertern bewertet und fließt nicht in deine Punktzahl ein." }));
+  notizCard.appendChild(ptEl("div", { class: "hint-text", style: "text-align:left;margin-top:10px;", text: "Aufgabe 42-45 wird in der echten Prüfung von menschlichen Bewertern bewertet und fließt hier nicht in deine Punktzahl ein. Die KI-Rückmeldung oben (falls verfügbar) ist eine zusätzliche Übungshilfe, ersetzt aber keine echte Prüfungsbewertung." }));
   card.appendChild(notizCard);
 
   card.appendChild(pt2BuildActionRow("hoeren", () => pt2EvaluateHoeren(), locked, "Hören auswerten (Teil 1-4 + Nr. 41)"));
@@ -9968,6 +10036,7 @@ function pt2SendUpdate() {
   const allDone = ["ls", "hoeren"].every(k => pt2State.evaluated[k]);
   const dauerMin = pt2State.startTime ? Math.max(1, Math.round((Date.now() - pt2State.startTime) / 60000)) : "";
   const kf = pt2State.kiFeedback.ls;
+  const kfNotiz = pt2State.kiFeedback.notiz;
   const payload = {
     sessionId: pt2State.sessionId || "",
     name: pt2State.name,
@@ -9981,7 +10050,11 @@ function pt2SendUpdate() {
     kiKriterien: kf && kf.kriterien
       ? PT2_SCHREIBEN_RUBRIC.kriterien.map(k => kf.kriterien[k.key] ? (k.label + ": " + (kf.kriterien[k.key].einschaetzung || "") + " - " + (kf.kriterien[k.key].kommentar || "")) : "").filter(Boolean).join(" | ")
       : "",
-    kiWortanzahl: kf ? (kf.wortanzahl_hinweis || "") : ""
+    kiWortanzahl: kf ? (kf.wortanzahl_hinweis || "") : "",
+    kiNotizGesamt: kfNotiz ? (kfNotiz.gesamteinschaetzung || "") : "",
+    kiNotizAuswertung: kfNotiz && kfNotiz.felder
+      ? [42, 43, 44, 45].map(n => kfNotiz.felder[n] ? (n + " " + PT2_NOTIZ_FELDER[n] + ": " + (kfNotiz.felder[n].status || "") + " - " + (kfNotiz.felder[n].kommentar || "")) : "").filter(Boolean).join(" | ")
+      : ""
   };
   fetch(PT2_CONFIG.SCRIPT_URL, {
     method: "POST",
