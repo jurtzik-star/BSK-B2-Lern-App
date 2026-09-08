@@ -416,7 +416,6 @@
       <div class="pill-row">
         <span>📚 Wortschatz</span>
         <span>🧩 Grammatik</span>
-        <span>📖 Prüfungstraining</span>
       </div>
     </div>
     <a class="feedback-link" id="feedbackLink" target="_blank" rel="noopener"
@@ -428,9 +427,9 @@
     <div class="card">
       <p style="margin-top:0;">Willkommen! Bevor es losgeht, ein paar kurze Fragen.</p>
       <p id="welcomeBack" class="hint-text" style="display:none;color:var(--green-700);font-weight:600;text-align:left;margin:0 0 12px;"></p>
-      <label for="inpName">Wie heißt du?</label>
-      <input type="text" id="inpName" placeholder="Dein Vorname">
-      <p id="nameError" class="hint-text" style="display:none;color:var(--red);text-align:left;margin:-10px 0 14px;">Bitte gib deinen Vornamen ein, damit deine Lehrkraft sehen kann, wer schon geübt hat.</p>
+      <label for="inpName">Wie heißt du? (Vor- und Nachname)</label>
+      <input type="text" id="inpName" placeholder="Vor- und Nachname">
+      <p id="nameError" class="hint-text" style="display:none;color:var(--red);text-align:left;margin:-10px 0 14px;">Bitte gib deinen vollständigen Namen ein, damit deine Lehrkraft sehen kann, wer schon geübt hat.</p>
 
       <label for="selLang">Was ist deine Muttersprache?</label>
       <select id="selLang">
@@ -462,7 +461,7 @@
         <input type="text" id="inpOtherLang" placeholder="z. B. Amharisch, Tigrinya ...">
       </div>
 
-      <p class="hint-text" style="margin-bottom:0;">Dein Vorname und deine Übungszeit werden an deine Lehrkraft übermittelt, damit sie euren Lernfortschritt sehen kann. Deine Übersetzungen werden nur auf diesem Gerät gespeichert (Browser-Speicher), damit sie beim nächsten Öffnen noch da sind.</p>
+      <p class="hint-text" style="margin-bottom:0;">Dein Name und deine Übungszeit werden an deine Lehrkraft übermittelt, damit sie euren Lernfortschritt sehen kann. Deine Übersetzungen werden nur auf diesem Gerät gespeichert (Browser-Speicher), damit sie beim nächsten Öffnen noch da sind.</p>
       <div class="row-btns">
         <button class="btn-primary" id="btnStart">Los geht's →</button>
       </div>
@@ -530,7 +529,7 @@
       </div>
       <div class="menu-item" data-go="grammar" id="menuItemGrammar" style="display:none;grid-column:1/-1;">
         <span class="emoji">📐</span>
-        <h3>Grammatik <span style="font-size:0.7rem;font-weight:700;color:var(--gold);border:1px solid var(--gold);border-radius:20px;padding:1px 8px;margin-left:4px;vertical-align:middle;">Testversion</span></h3>
+        <h3>Grammatik</h3>
         <p id="grammarTileDesc">Konjunktiv I/indirekte Rede, Funktionsverbgefüge, finale &amp; modale Konnektoren.</p>
       </div>
       <div class="menu-item" data-go="wordlist" style="grid-column:1/-1;">
@@ -736,7 +735,7 @@
       <div class="topline">
         <button class="btn-ghost" data-back="menu">← Menü</button>
       </div>
-      <p style="margin:0 0 4px;font-weight:700;color:var(--green-900);">📐 Grammatik – Kapitel <span id="grammarSubmenuChapter">7</span> <span style="font-size:0.7rem;font-weight:700;color:var(--gold);border:1px solid var(--gold);border-radius:20px;padding:1px 8px;margin-left:4px;vertical-align:middle;">Testversion</span></p>
+      <p style="margin:0 0 4px;font-weight:700;color:var(--green-900);">📐 Grammatik – Kapitel <span id="grammarSubmenuChapter">7</span></p>
       <p class="hint-text" style="text-align:left;margin:0;">Grammatikthemen aus diesem Kapitel – wähle eins zum Üben. Diese Übungen zeigen dir Musterlösungen zum Selbst-Vergleichen, es gibt hier keine automatische Auswertung.</p>
     </div>
     <div class="menu-grid" id="grammarMenuCh7">
@@ -2449,7 +2448,7 @@
     </div>
   </section>
 
-  <footer class="note">Wortschatz, Grammatik &amp; Prüfungstraining · Erstellt von Thomas Jurtzik für den BSK-B2-Kurs</footer>
+  <footer class="note">Wortschatz &amp; Grammatik · Erstellt von Thomas Jurtzik für den BSK-B2-Kurs</footer>
 </div>
 
 <script>
@@ -6312,6 +6311,12 @@ document.getElementById("btnStart").addEventListener("click", ()=>{
 });
 
 /* ---------------- KAPITEL-AUSWAHL ---------------- */
+/* Prüfungstraining ist vorerst komplett ausgeblendet (bewusst erst ganz am
+   Schluss für alle Apps gemeinsam neu gemacht, siehe Modelltest A/B, die
+   noch Lehrwerk-Audios aus audio/pt2 nutzen). Inhalt/Screens bleiben im
+   Code erhalten, nur der Einstiegspunkt in der Kapitel-Auswahl ist
+   deaktiviert - einfach auf true setzen, um ihn wieder einzublenden. */
+const PRUEFUNGSTRAINING_ENABLED = false;
 function renderChapterPicker(){
   const curWrap = document.getElementById("currentChapterWrap");
   const ptWrap = document.getElementById("ptWrap");
@@ -6325,12 +6330,14 @@ function renderChapterPicker(){
   curWrap.appendChild(curLabel);
   curWrap.appendChild(buildChapterCard(CURRENT_CHAPTER, true));
 
-  const ptLabel = document.createElement("p");
-  ptLabel.className = "section-label-small";
-  ptLabel.textContent = "Prüfungstraining";
-  ptWrap.appendChild(ptLabel);
-  ptWrap.appendChild(buildPruefungstrainingCard());
-  ptWrap.appendChild(buildPruefungstraining2Card());
+  if(PRUEFUNGSTRAINING_ENABLED){
+    const ptLabel = document.createElement("p");
+    ptLabel.className = "section-label-small";
+    ptLabel.textContent = "Prüfungstraining";
+    ptWrap.appendChild(ptLabel);
+    ptWrap.appendChild(buildPruefungstrainingCard());
+    ptWrap.appendChild(buildPruefungstraining2Card());
+  }
 
   // Frühere Kapitel zur Wiederholung: Überschrift bleibt bewusst immer stehen,
   // auch wenn noch keine früheren Kapitel freigegeben sind - füllt sich von
