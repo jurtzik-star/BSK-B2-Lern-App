@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BSK B2 – Prototyp</title>
+<title>BSK B2 – Wortschatz &amp; Grammatik</title>
 <style>
   :root{
     --green-900:#2f5a45;
@@ -49,6 +49,15 @@
     margin-left:8px;vertical-align:2px;
   }
   header.top .pill-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
+  header.top .feedback-link{
+    margin-left:auto;flex:none;align-self:flex-start;
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,0.22);color:#fff;text-decoration:none;
+    border-radius:999px;padding:7px 13px;font-size:0.78rem;font-weight:700;
+    white-space:nowrap;transition:background .15s;
+  }
+  header.top .feedback-link:hover{background:rgba(255,255,255,0.34);}
+  @media print{header.top .feedback-link{display:none !important;}}
   header.top .pill-row span{
     display:inline-flex;align-items:center;gap:5px;
     background:rgba(255,255,255,0.2);border-radius:999px;padding:3px 11px;font-size:0.76rem;font-weight:700;
@@ -105,6 +114,25 @@
   .quiz-options button.opt-correct{background:var(--green-600);color:#fff;}
   .quiz-options button.opt-wrong{background:#fbe6e3;color:var(--red);border:2px solid var(--red);}
   .quiz-options button:disabled{opacity:0.55;cursor:default;}
+  .quiz-options button.opt-full{display:block;width:100%;text-align:left;min-width:0;}
+  audio.listen-audio{width:100%;margin:6px 0 4px;}
+  .checklist{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px;}
+  .checklist label{
+    display:flex;align-items:center;gap:10px;background:var(--green-50);border:2px solid var(--green-100);
+    border-radius:10px;padding:10px 14px;cursor:pointer;font-size:0.95rem;
+  }
+  .checklist label:hover{border-color:var(--green-500);}
+  .checklist input{width:18px;height:18px;accent-color:var(--green-600);}
+  .checklist label.correct-yes{border-color:var(--green-600);background:var(--green-100);}
+  .checklist label.correct-no{border-color:var(--red);background:#fbe6e3;}
+  .track-card{
+    background:var(--card);border:2px solid var(--green-100);border-radius:14px;padding:16px 18px;
+    cursor:pointer;text-align:left;box-shadow:var(--shadow);margin-bottom:12px;
+    transition:border-color .15s ease, transform .12s ease;
+  }
+  .track-card:hover{border-color:var(--green-500);transform:translateY(-2px);}
+  .track-card .tracktitle{font-weight:700;color:var(--green-900);font-size:1rem;margin:0 0 4px;}
+  .track-card .tracktask{font-size:0.82rem;color:#5b6d62;}
   .feedback{margin-top:14px;text-align:center;font-weight:700;min-height:24px;}
   .feedback.correct{color:var(--green-700);}
   .feedback.wrong{color:var(--red);}
@@ -159,6 +187,10 @@
   .chapter-card .chaptitle{font-weight:700;color:var(--green-900);font-size:1.02rem;}
   .chapter-card .chapthemes{font-size:0.82rem;color:#5b6d62;margin:0 0 4px;}
   .chapter-card .chapmeta{font-size:0.76rem;color:#8a978f;}
+  .chapter-card.locked{cursor:default;opacity:0.55;background:#f2f4f2;border-color:#e2e6e2;}
+  .chapter-card.locked:hover{border-color:#e2e6e2;transform:none;}
+  .chapter-card.locked .chapnum{background:#e2e6e2;color:#8a978f;}
+  .chapter-card.locked .chaptitle{color:#8a978f;}
   .section-label-small{font-size:0.76rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a978f;margin:18px 0 8px;}
   @media print{
     header.top, .menu-grid, .row-btns, footer.note, #btnPrint{display:none !important;}
@@ -380,13 +412,15 @@
   <header class="top">
     <div class="badge"><img src="data:image/png;base64,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" alt="Logo"></div>
     <div>
-      <h1>BSK B2<span class="badge-tag">Prototyp</span></h1>
+      <h1>BSK B2</h1>
       <div class="pill-row">
         <span>📚 Wortschatz</span>
         <span>🧩 Grammatik</span>
         <span>📖 Prüfungstraining</span>
       </div>
     </div>
+    <a class="feedback-link" id="feedbackLink" target="_blank" rel="noopener"
+       href="https://docs.google.com/forms/d/e/1FAIpQLSfPVgOJH4fXEBupxhMjcUXaosruoDl_n5BtzJE4LW1sJmth2A/viewform">💬 Feedback</a>
   </header>
 
   <!-- START SCREEN -->
@@ -447,6 +481,7 @@
     <div id="currentChapterWrap"></div>
     <div id="ptWrap"></div>
     <div id="pastChaptersWrap"></div>
+    <div id="futureChaptersWrap"></div>
   </section>
 
   <!-- MENU SCREEN -->
@@ -483,6 +518,16 @@
         <h3>Zuordnen</h3>
         <p>Verbinde Wort und Erklärung.</p>
       </div>
+      <div class="menu-item" data-go="hoeren">
+        <span class="emoji">🎧</span>
+        <h3>Hören</h3>
+        <p>Höre den Dialog und beantworte die Fragen.</p>
+      </div>
+      <div class="menu-item" data-go="schreiben">
+        <span class="emoji">✍️</span>
+        <h3>Schreiben</h3>
+        <p>Bearbeite eine Schreibaufgabe und erhalte eine Rückmeldung.</p>
+      </div>
       <div class="menu-item" data-go="grammar" id="menuItemGrammar" style="display:none;grid-column:1/-1;">
         <span class="emoji">📐</span>
         <h3>Grammatik <span style="font-size:0.7rem;font-weight:700;color:var(--gold);border:1px solid var(--gold);border-radius:20px;padding:1px 8px;margin-left:4px;vertical-align:middle;">Testversion</span></h3>
@@ -504,6 +549,62 @@
       </div>
       <p style="margin-top:0;font-weight:700;color:var(--green-900);" id="sectionPickerTitle">Welche Wörter möchtest du üben?</p>
       <div class="row-btns" id="sectionButtons"></div>
+    </div>
+  </section>
+
+  <!-- HÖREN: TRACK-LISTE -->
+  <section id="screen-hoeren-list" class="screen">
+    <div class="card">
+      <div class="topline">
+        <button class="btn-ghost" data-back="menu">← Menü</button>
+      </div>
+      <p style="margin-top:0;font-weight:700;color:var(--green-900);">Hörübungen dieses Kapitels</p>
+      <div id="trackListWrap"></div>
+      <p class="hint-text" id="trackListEmpty" style="display:none;">Für dieses Kapitel gibt es noch keine Hörübung.</p>
+    </div>
+  </section>
+
+  <!-- HÖREN: EINE AUFGABE -->
+  <section id="screen-hoeren-task" class="screen">
+    <div class="card">
+      <div class="topline">
+        <button class="btn-ghost" data-back="hoeren-list">← Hörübungen</button>
+      </div>
+      <h2 class="tasktitle" id="hoerenTrackTitle" style="font-size:1.02rem;color:var(--green-900);margin:0 0 4px;">—</h2>
+      <p class="hint-text" id="hoerenTrackTask" style="text-align:left;margin:0 0 10px;">—</p>
+      <audio controls class="listen-audio" id="hoerenAudio"></audio>
+
+      <div id="hoerenChecklistBlock" style="display:none;">
+        <p style="margin:14px 0 6px;font-size:0.92rem;color:var(--green-900);font-weight:600;" id="hoerenChecklistInstruction"></p>
+        <div class="checklist" id="hoerenChecklistWrap"></div>
+        <div class="row-btns">
+          <button class="btn-primary" id="btnHoerenCheck2a">Prüfen</button>
+          <button class="btn-secondary" id="btnHoerenToQuestions">Weiter zu den Fragen →</button>
+        </div>
+        <div class="feedback" id="hoerenChecklistFeedback"></div>
+      </div>
+
+      <div id="hoerenQuestionsBlock" style="display:none;">
+        <div class="topline" style="margin:18px 0 0;">
+          <span class="pill" id="hoerenQCounter">1 / 10</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" id="hoerenQProgress"></div></div>
+        <p class="fill-sentence" id="hoerenQSentence">—</p>
+        <div class="quiz-options" id="hoerenQOptions"></div>
+        <div class="feedback" id="hoerenQFeedback"></div>
+      </div>
+
+      <div id="hoerenResultBlock" style="display:none;">
+        <div class="score-box">
+          <div style="font-size:2rem;" id="hoerenResultEmoji">🎉</div>
+          <div class="big"><span id="hoerenResultScore">0</span>/<span id="hoerenResultTotal">0</span></div>
+          <p id="hoerenResultText">Gut gemacht!</p>
+        </div>
+        <div class="row-btns" style="justify-content:center;">
+          <button class="btn-secondary" data-back="hoeren-list">Zurück zu den Hörübungen</button>
+          <button class="btn-primary" id="btnHoerenRetry">Nochmal üben</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2348,7 +2449,7 @@
     </div>
   </section>
 
-  <footer class="note">Prototyp: Wortschatz + Grammatik · Erstellt von Thomas Jurtzik für den BSK-B2-Kurs</footer>
+  <footer class="note">Wortschatz, Grammatik &amp; Prüfungstraining · Erstellt von Thomas Jurtzik für den BSK-B2-Kurs</footer>
 </div>
 
 <script>
@@ -5990,7 +6091,7 @@ const CHAPTER_META = {
 /* Welches Kapitel ist gerade "aktuell" (wird auf der Kapitel-Auswahl oben und
    hervorgehoben angezeigt)? Einfach die Zahl ändern und die Datei neu
    hochladen, wenn der Kurs weiter ist. */
-const CURRENT_CHAPTER = 8;
+const CURRENT_CHAPTER = 1;
 /* Alle bereits gebauten Kapitel, aufsteigend. Neue Kapitel-Nummer hier
    ergänzen, sobald ihr Wortschatz oben in VOCAB usw. eingefügt wurde. */
 const RELEASED_CHAPTERS = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -6017,6 +6118,7 @@ let state = {
   artQueue:[], artIndex:0, artScore:0, artAttempts:0, artLocked:false,
   gapQueue:[], gapIndex:0, gapScore:0, gapAttempts:0, gapLocked:false,
   matchPairs:[], matchSelectedWord:null, matchSolved:0,
+  hoerenTrack:null, hoerenQueue:[], hoerenQIndex:0, hoerenScore:0, hoerenAttempts:0, hoerenLocked:false,
   resultReturnTo:"menu", resultRetryFn:null
 };
 
@@ -6127,11 +6229,27 @@ document.getElementById("selLang").addEventListener("change", (e)=>{
   document.getElementById("otherLangWrap").style.display = e.target.value==="Andere" ? "block" : "none";
 });
 
+/* Feedback-Link: Namen aus dem Startbildschirm als vorausgefüllten Wert
+   ins Google-Formular übernehmen, damit er nicht doppelt eingetippt
+   werden muss (Feld-ID "Name" im eigenen BSK-B2-Feedback-Formular:
+   entry.1308738824; eigenes Formular, getrennt von B1 und BSK-B1+, siehe
+   Ordner "Feedback-Formulare Lern-Apps"). */
+const FEEDBACK_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfPVgOJH4fXEBupxhMjcUXaosruoDl_n5BtzJE4LW1sJmth2A/viewform";
+function updateFeedbackLink(name){
+  const link = document.getElementById("feedbackLink");
+  if(!link) return;
+  const trimmed = (name||"").trim();
+  link.href = trimmed
+    ? FEEDBACK_BASE_URL + "?usp=pp_url&entry.1308738824=" + encodeURIComponent(trimmed)
+    : FEEDBACK_BASE_URL;
+}
+
 /* Gespeicherte Angaben (Name/Sprache) vorausfüllen, damit man sie nicht bei
    jedem Besuch neu eingeben muss. */
 (function prefillFromStorage(){
   if(!SAVED) return;
   if(SAVED.name) document.getElementById("inpName").value = SAVED.name;
+  updateFeedbackLink(SAVED.name);
   const sel = document.getElementById("selLang");
   if(SAVED.rawLang && [...sel.options].some(o=>o.value===SAVED.rawLang)){
     sel.value = SAVED.rawLang;
@@ -6160,6 +6278,7 @@ document.getElementById("inpName").addEventListener("input", ()=>{
     inp.classList.remove("input-error");
     document.getElementById("nameError").style.display = "none";
   }
+  updateFeedbackLink(inp.value);
 });
 document.getElementById("btnStart").addEventListener("click", ()=>{
   const nameInput = document.getElementById("inpName");
@@ -6197,7 +6316,8 @@ function renderChapterPicker(){
   const curWrap = document.getElementById("currentChapterWrap");
   const ptWrap = document.getElementById("ptWrap");
   const pastWrap = document.getElementById("pastChaptersWrap");
-  curWrap.innerHTML = ""; ptWrap.innerHTML = ""; pastWrap.innerHTML = "";
+  const futureWrap = document.getElementById("futureChaptersWrap");
+  curWrap.innerHTML = ""; ptWrap.innerHTML = ""; pastWrap.innerHTML = ""; futureWrap.innerHTML = "";
 
   const curLabel = document.createElement("p");
   curLabel.className = "section-label-small";
@@ -6212,13 +6332,26 @@ function renderChapterPicker(){
   ptWrap.appendChild(buildPruefungstrainingCard());
   ptWrap.appendChild(buildPruefungstraining2Card());
 
-  const others = RELEASED_CHAPTERS.filter(k => k !== CURRENT_CHAPTER).sort((a,b)=>a-b);
-  if(others.length){
-    const pastLabel = document.createElement("p");
-    pastLabel.className = "section-label-small";
-    pastLabel.textContent = "Frühere Kapitel · zur Wiederholung";
-    pastWrap.appendChild(pastLabel);
-    others.forEach(k => pastWrap.appendChild(buildChapterCard(k, false)));
+  // Frühere Kapitel zur Wiederholung: Überschrift bleibt bewusst immer stehen,
+  // auch wenn noch keine früheren Kapitel freigegeben sind - füllt sich von
+  // selbst, sobald CURRENT_CHAPTER erhöht wird (wie bei den anderen Apps).
+  const pastLabel = document.createElement("p");
+  pastLabel.className = "section-label-small";
+  pastLabel.textContent = "Frühere Kapitel · zur Wiederholung";
+  pastWrap.appendChild(pastLabel);
+  const past = RELEASED_CHAPTERS.filter(k => k < CURRENT_CHAPTER).sort((a,b)=>a-b);
+  past.forEach(k => pastWrap.appendChild(buildChapterCard(k, false)));
+
+  // Spätere Kapitel: bereits gebaut, im Kurs aber noch nicht dran - werden
+  // grau und nicht anklickbar angezeigt, bis sie mit CURRENT_CHAPTER aktuell
+  // werden (wie bei der B1- und BSK-B1+-App).
+  const future = RELEASED_CHAPTERS.filter(k => k > CURRENT_CHAPTER).sort((a,b)=>a-b);
+  if(future.length){
+    const futureLabel = document.createElement("p");
+    futureLabel.className = "section-label-small";
+    futureLabel.textContent = "Spätere Kapitel";
+    futureWrap.appendChild(futureLabel);
+    future.forEach(k => futureWrap.appendChild(buildChapterCard(k, false, true)));
   }
 }
 function buildPruefungstrainingCard(){
@@ -6251,17 +6384,19 @@ function buildPruefungstraining2Card(){
   });
   return card;
 }
-function buildChapterCard(k, isCurrent){
+function buildChapterCard(k, isCurrent, isLocked){
   const meta = CHAPTER_META[k] || {title:"", themes:""};
   const wordCount = VOCAB.filter(v=>v.k===k).length;
   const card = document.createElement("div");
-  card.className = "chapter-card" + (isCurrent ? " current" : "");
+  card.className = "chapter-card" + (isCurrent ? " current" : "") + (isLocked ? " locked" : "");
   card.innerHTML =
     '<div class="chaphead"><span class="chapnum">' + k + '</span>' +
     '<span class="chaptitle">Kapitel ' + k + ' · ' + meta.title + '</span></div>' +
     '<p class="chapthemes">' + meta.themes + '</p>' +
-    '<p class="chapmeta">' + wordCount + ' Wörter' + (isCurrent ? "" : " · Wiederholung") + '</p>';
-  card.addEventListener("click", ()=> selectChapter(k));
+    '<p class="chapmeta">' + (isLocked ? "Kommt später" : (wordCount + ' Wörter' + (isCurrent ? "" : " · Wiederholung"))) + '</p>';
+  if(!isLocked){
+    card.addEventListener("click", ()=> selectChapter(k));
+  }
   return card;
 }
 function selectChapter(k){
@@ -6369,12 +6504,276 @@ function sendUsageBeacon(){
 document.addEventListener("visibilitychange", ()=>{ if(document.hidden) sendUsageBeacon(); });
 window.addEventListener("pagehide", sendUsageBeacon);
 
+/* ---------------- HÖRVERSTÄNDNIS ----------------
+   Eigene Audioaufnahmen von Thomas + eigene, dazu geschriebene Aufgaben (keine
+   Lehrwerk-Hörtexte). questions ist die Sequenz der Verständnisfragen, im
+   gleichen Frage-für-Frage-Format wie bei Grammatik/Wortschatz.
+   Wie bei B1/BSK-B1+ vorerst nur Kapitel 1 komplett fertig - weitere Kapitel
+   ergänzen, sobald eigene Audios für sie aufgenommen sind. */
+const LISTENING_TRACKS = [
+  {
+    id:"k1-a-track1", k:1, s:"A",
+    title:"Interview: Vom Bankkaufmann zum Rettungssanitäter",
+    taskLabel:"Hörverstehen",
+    audio:"audio/Kapitel 1/track1.mp3",
+    questions:[
+      {q:"Was hat Tarek zuerst gelernt, bevor er Rettungssanitäter wurde?", answer:"Er hat eine Ausbildung zum Bankkaufmann gemacht", wrong:["Er hat Medizin studiert","Er war zuerst Verkäufer","Er hat direkt nach der Schule die Ausbildung zum Rettungssanitäter begonnen"], hint:"Seine Eltern hielten diesen Beruf für sinnvoll."},
+      {q:"Warum war Tarek im Büro unzufrieden?", answer:"Ihm hat der Kontakt zu Menschen gefehlt", wrong:["Das Gehalt war ihm zu niedrig","Er hatte Streit mit seinem Chef","Die Arbeitszeiten waren ihm zu lang"], hint:"Er saß den ganzen Tag am Schreibtisch und hat Zahlen kontrolliert."},
+      {q:"Was hat Tarek gemacht, bevor er gekündigt hat?", answer:"Er hat sich beim Roten Kreuz als ehrenamtlicher Helfer gemeldet", wrong:["Er hat sofort die Ausbildung zum Rettungssanitäter begonnen","Er hat ein Praktikum bei einer anderen Bank gemacht","Er hat zuerst eine lange Pause eingelegt"], hint:"So wollte er testen, ob ihm die Arbeit wirklich liegt."},
+      {q:"Wie war die Ausbildung zum Rettungssanitäter für Tarek finanziell?", answer:"Er hat deutlich weniger verdient als vorher, kam aber mit Rücklagen und Unterstützung zurecht", wrong:["Er hat während der Ausbildung genauso viel verdient wie vorher","Die Ausbildung war komplett kostenlos und gut bezahlt","Er musste sich hoch verschulden"], hint:"Seine Partnerin hat ihn dabei unterstützt."},
+      {q:"Welchen Rat gibt Tarek Menschen, die über einen Berufswechsel nachdenken?", answer:"Erst ausprobieren, zum Beispiel durch ein Praktikum oder Ehrenamt, bevor man kündigt", wrong:["Sofort kündigen und danach überlegen","Sich vor allem nach dem Rat der Eltern richten","Nur wechseln, wenn das neue Gehalt höher ist"], hint:"Das rät er am Ende des Gesprächs."}
+    ]
+  },
+  {
+    id:"k1-b-track2", k:1, s:"B",
+    title:"Beratungsgespräch: Umschulung im Büromanagement",
+    taskLabel:"Hörverstehen",
+    audio:"audio/Kapitel 1/track2.mp3",
+    questions:[
+      {q:"Warum ist Frau Kowalski mit ihrem Job unzufrieden?", answer:"Sie möchte lieber etwas mit mehr Organisation und Zahlen machen", wrong:["Sie mag den Kontakt zu Kunden gar nicht mehr","Ihr Chef ist unzufrieden mit ihrer Arbeit","Sie möchte weniger arbeiten"], hint:"Der Job als Verkäuferin macht ihr eigentlich noch Spaß."},
+      {q:"An welche Umschulung denkt Frau Kowalski?", answer:"Büromanagement mit Schwerpunkt Buchhaltung", wrong:["Eine zweite Ausbildung im Einzelhandel","Ein Studium der Betriebswirtschaft","Eine Umschulung zur Bankkauffrau"], hint:"Sie erwähnt das gleich zu Beginn des Gesprächs."},
+      {q:"Welchen Schulabschluss hat Frau Kowalski?", answer:"Mittlere Reife, danach die Ausbildung zur Einzelhandelskauffrau", wrong:["Abitur", "Hauptschulabschluss ohne Ausbildung","Einen Hochschulabschluss"], hint:"Sie befürchtet zunächst, das reiche nicht für die Umschulung."},
+      {q:"Was ist laut Herrn Bachmann für die Umschulung besonders wichtig?", answer:"Vor allem die Berufserfahrung, die sie schon mitbringt", wrong:["Ein höherer Schulabschluss","Sehr gute Englischkenntnisse","Ein Empfehlungsschreiben ihres jetzigen Chefs"], hint:"Einen höheren Schulabschluss braucht sie dafür nicht."},
+      {q:"Wie lange dauert die Umschulung in der Regel?", answer:"Zwei Jahre, mit Vorerfahrung manchmal auch achtzehn Monate", wrong:["Sechs Monate", "Ein Jahr ohne Ausnahme","Drei bis vier Jahre"], hint:"Bei entsprechender Vorerfahrung kann sie verkürzt werden."}
+    ]
+  },
+  {
+    id:"k1-c-track3", k:1, s:"C",
+    title:"Unternehmensbesichtigung bei Nordlicht Feinkost",
+    taskLabel:"Hörverstehen",
+    audio:"audio/Kapitel 1/track3.mp3",
+    questions:[
+      {q:"Wie viele Mitarbeiter hat die Firma insgesamt?", answer:"Etwa achtzig", wrong:["Etwa zwanzig","Etwa zweihundert","Etwa vierzig"], hint:"Frau Reetz nennt die Zahl gleich zu Beginn der Führung."},
+      {q:"Was wird in der Produktionshalle hergestellt?", answer:"Suppen und Soßen nach eigenen Rezepten", wrong:["Brot und Gebäck","Milchprodukte","Fertiggerichte aus Fleisch"], hint:"Alles wird nach eigenen Rezepten hergestellt."},
+      {q:"Was ist in der Produktionshalle Vorschrift?", answer:"Haarnetz und Schutzkleidung, auch bei kurzem Reinschauen", wrong:["Nur bei langen Besuchen Schutzkleidung nötig","Schutzkleidung ist freiwillig","Nur ein Haarnetz, keine weitere Kleidung"], hint:"Das gilt aus Hygienegründen ausnahmslos."},
+      {q:"Was passiert in der Qualitätskontrolle?", answer:"Jede Charge wird geprüft, bevor sie ins Lager geht", wrong:["Dort werden nur die Zutaten eingekauft","Dort werden die Mitarbeiter geschult","Dort wird die Verpackung entworfen"], hint:"Sie liegt direkt neben der Produktionshalle."},
+      {q:"Wo startet Milan, und wohin wechselt er später?", answer:"Er startet in der Verpackung und wechselt später für einige Wochen in die Qualitätskontrolle", wrong:["Er startet im Lager und bleibt dort dauerhaft","Er startet in der Verwaltung und wechselt in den Vertrieb","Er startet in der Qualitätskontrolle und wechselt in die Verpackung"], hint:"So lernt er zuerst den ganzen Ablauf von Anfang bis Ende kennen."}
+    ]
+  },
+  {
+    id:"k1-d-track4", k:1, s:"D",
+    title:"Kurzvortrag: Die Organisation des Unternehmens",
+    taskLabel:"Hörverstehen",
+    audio:"audio/Kapitel 1/track4.mp3",
+    questions:[
+      {q:"Wer trifft laut Frau Delgado die grundsätzlichen strategischen Entscheidungen?", answer:"Die Geschäftsführung", wrong:["Die Personalabteilung","Jede Abteilung für sich selbst","Der Betriebsrat"], hint:"Sie steht laut Frau Delgado ganz oben im Unternehmen."},
+      {q:"Welche Abteilung kümmert sich um Rohstoffe und Lieferanten?", answer:"Der Einkauf", wrong:["Die Produktion","Der Vertrieb","Die Buchhaltung"], hint:"Diese Abteilung wird als erste der fünf Abteilungen genannt."},
+      {q:"Wofür ist die Buchhaltung zuständig?", answer:"Rechnungen, Gehälter und die Finanzen insgesamt", wrong:["Verkauf und Kundenbetreuung","Einstellung und Weiterbildung","Herstellung der Produkte"], hint:"Das ist nicht dieselbe Abteilung wie die Personalabteilung."},
+      {q:"Wofür ist laut Frau Delgado die Personalabteilung zuständig?", answer:"Einstellung, Weiterbildung und Fragen der Mitarbeitenden", wrong:["Rohstoffe und Lieferanten","Verkauf und Kundenbetreuung","Strategische Entscheidungen des Unternehmens"], hint:"Frau Delgado spricht hier über ihre eigene Abteilung."},
+      {q:"An wen soll man sich bei einem Anliegen zuerst wenden?", answer:"An die direkte Abteilungsleitung", wrong:["Direkt an die Geschäftsführung","Direkt an die Personalabteilung","An die Buchhaltung"], hint:"Nur bei größeren Themen wie Vertragsfragen kommt man direkt zur Personalabteilung."}
+    ]
+  },
+  {
+    id:"k1-e-track5", k:1, s:"E",
+    title:"Kurzszene: Du oder Sie in der neuen Firma",
+    taskLabel:"Hörverstehen",
+    audio:"audio/Kapitel 1/track5.mp3",
+    questions:[
+      {q:"Wie war es in Amaras altem Job?", answer:"Dort haben sich alle gesiezt, sogar unter Kolleginnen im gleichen Team", wrong:["Dort haben sich alle geduzt, auch die Chefin","Dort gab es gar keine klare Regel","Dort war das Siezen nur gegenüber Kunden üblich"], hint:"Amara erzählt das, nachdem Sofie ihr das Du anbietet."},
+      {q:"Welche Regel gilt in der neuen Firma laut Sofie?", answer:"Die Geschäftsleitung und ältere Kolleg:innen werden gesiezt, alle anderen duzt man", wrong:["Es wird grundsätzlich niemand gesiezt","Alle werden ausnahmslos gesiezt","Nur neue Mitarbeitende werden gesiezt"], hint:"Außer diese Personen bieten selbst das Du an."},
+      {q:"Woran erkennt man laut Sofie, ob man jemanden duzen darf?", answer:"Man wartet ab und hört, wie andere die Person ansprechen", wrong:["Man fragt am besten sofort die Geschäftsführung","Man duzt grundsätzlich alle unter vierzig Jahren","Das steht in einer festen Liste im Unternehmen"], hint:"Das rät Sofie Amara als Faustregel."},
+      {q:"Wie reagiert Herr Brandt, als er sich dazusetzt?", answer:"Er wird von Sofie gesiezt und gebeten, sich zu setzen", wrong:["Er wird von allen sofort geduzt","Er setzt sich nicht dazu","Er bietet allen sofort das Du an"], hint:"Sofie sagt zu ihm: „Klar, Herr Brandt, setzen Sie sich!“"}
+    ]
+  }
+];
+
+function renderTrackList(){
+  const wrap = document.getElementById("trackListWrap");
+  const emptyMsg = document.getElementById("trackListEmpty");
+  wrap.innerHTML = "";
+  const tracks = LISTENING_TRACKS.filter(t => t.k === state.chapter);
+  if(tracks.length === 0){
+    emptyMsg.style.display = "block";
+    return;
+  }
+  emptyMsg.style.display = "none";
+  tracks.forEach(track=>{
+    const card = document.createElement("div");
+    card.className = "track-card";
+    const secLabel = (SECTION_LABELS_BY_CHAPTER[track.k] && SECTION_LABELS_BY_CHAPTER[track.k][track.s]) ? SECTION_LABELS_BY_CHAPTER[track.k][track.s] : ("Teil " + track.s);
+    card.innerHTML =
+      '<p class="tracktitle">🎧 ' + track.title + '</p>' +
+      '<p class="tracktask">' + secLabel + ' · ' + track.taskLabel + '</p>';
+    card.addEventListener("click", ()=> startTrack(track));
+    wrap.appendChild(card);
+  });
+}
+function startTrack(track){
+  state.hoerenTrack = track;
+  document.getElementById("hoerenTrackTitle").textContent = "🎧 " + track.title;
+  document.getElementById("hoerenTrackTask").textContent = "Teil " + track.s + " · " + track.taskLabel;
+  document.getElementById("hoerenAudio").src = track.audio;
+
+  document.getElementById("hoerenResultBlock").style.display = "none";
+  document.getElementById("hoerenQuestionsBlock").style.display = "none";
+
+  if(track.checklist){
+    document.getElementById("hoerenChecklistBlock").style.display = "block";
+    document.getElementById("hoerenChecklistInstruction").textContent = track.checklist.instruction;
+    const wrap = document.getElementById("hoerenChecklistWrap");
+    wrap.innerHTML = "";
+    track.checklist.topics.forEach(topic=>{
+      const label = document.createElement("label");
+      label.setAttribute("data-topic", topic.id);
+      label.innerHTML = '<input type="checkbox"> ' + topic.label;
+      wrap.appendChild(label);
+    });
+    document.getElementById("hoerenChecklistFeedback").textContent = "";
+    document.getElementById("hoerenChecklistFeedback").className = "feedback";
+  } else {
+    document.getElementById("hoerenChecklistBlock").style.display = "none";
+    startHoerenQuestions();
+  }
+  showScreen("hoeren-task");
+}
+document.getElementById("btnHoerenCheck2a").addEventListener("click", ()=>{
+  const track = state.hoerenTrack;
+  const labels = document.querySelectorAll("#hoerenChecklistWrap label");
+  let allCorrect = true;
+  labels.forEach(l=>{
+    const topic = l.getAttribute("data-topic");
+    const checked = l.querySelector("input").checked;
+    const shouldBeChecked = track.checklist.correct.includes(topic);
+    l.classList.remove("correct-yes","correct-no");
+    if(checked === shouldBeChecked){
+      if(shouldBeChecked) l.classList.add("correct-yes");
+    } else {
+      l.classList.add("correct-no");
+      allCorrect = false;
+    }
+  });
+  const fb = document.getElementById("hoerenChecklistFeedback");
+  fb.textContent = allCorrect ? "Richtig! ✅" : "Noch nicht ganz richtig – markierte Zeilen noch einmal prüfen.";
+  fb.className = "feedback " + (allCorrect ? "correct" : "wrong");
+});
+document.getElementById("btnHoerenToQuestions").addEventListener("click", ()=>{
+  document.getElementById("hoerenChecklistBlock").style.display = "none";
+  startHoerenQuestions();
+});
+function startHoerenQuestions(){
+  state.hoerenQueue = shuffle(state.hoerenTrack.questions);
+  state.hoerenQIndex = 0; state.hoerenScore = 0;
+  document.getElementById("hoerenQuestionsBlock").style.display = "block";
+  renderHoerenQuestion();
+}
+function renderHoerenQuestion(){
+  const item = state.hoerenQueue[state.hoerenQIndex];
+  document.getElementById("hoerenQCounter").textContent = (state.hoerenQIndex+1)+" / "+state.hoerenQueue.length;
+  document.getElementById("hoerenQProgress").style.width = Math.round((state.hoerenQIndex/state.hoerenQueue.length)*100)+"%";
+  document.getElementById("hoerenQSentence").textContent = item.q;
+  document.getElementById("hoerenQFeedback").textContent = "";
+  document.getElementById("hoerenQFeedback").className = "feedback";
+  state.hoerenAttempts = 0; state.hoerenLocked = false;
+  const options = shuffle([item.answer, ...item.wrong]);
+  const wrap = document.getElementById("hoerenQOptions");
+  wrap.innerHTML = "";
+  options.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.className = "btn-secondary opt-full";
+    btn.textContent = opt;
+    btn.dataset.opt = opt;
+    btn.addEventListener("click", ()=> onHoerenOptionClick(btn, item));
+    wrap.appendChild(btn);
+  });
+}
+function onHoerenOptionClick(btn, item){
+  if(state.hoerenLocked || btn.disabled) return;
+  const fb = document.getElementById("hoerenQFeedback");
+  if(btn.dataset.opt === item.answer){
+    state.hoerenScore++;
+    state.hoerenLocked = true;
+    btn.classList.add("opt-correct");
+    document.querySelectorAll("#hoerenQOptions button").forEach(b=>b.disabled=true);
+    fb.textContent = "Richtig! ✅";
+    fb.className = "feedback correct";
+    setTimeout(nextHoerenQuestion, 1200);
+  } else {
+    state.hoerenAttempts++;
+    btn.classList.add("opt-wrong");
+    btn.disabled = true;
+    fb.textContent = state.hoerenAttempts === 1
+      ? "Nicht ganz. 💡 Tipp: " + item.hint
+      : "Fast! Es bleibt nur noch eine Möglichkeit.";
+    fb.className = "feedback wrong";
+  }
+}
+function nextHoerenQuestion(){
+  if(state.hoerenQIndex < state.hoerenQueue.length - 1){
+    state.hoerenQIndex++;
+    renderHoerenQuestion();
+  } else {
+    document.getElementById("hoerenQProgress").style.width = "100%";
+    document.getElementById("hoerenQuestionsBlock").style.display = "none";
+    document.getElementById("hoerenResultScore").textContent = state.hoerenScore;
+    document.getElementById("hoerenResultTotal").textContent = state.hoerenQueue.length;
+    const ratio = state.hoerenScore / state.hoerenQueue.length;
+    document.getElementById("hoerenResultEmoji").textContent = ratio>=0.8 ? "🎉" : ratio>=0.5 ? "👍" : "💪";
+    document.getElementById("hoerenResultBlock").style.display = "block";
+    sendHoerenBeacon(state.hoerenTrack, state.hoerenScore, state.hoerenQueue.length);
+  }
+}
+document.getElementById("btnHoerenRetry").addEventListener("click", ()=>{
+  startTrack(state.hoerenTrack);
+});
+/* Sendet zusätzlich, sobald eine Hörübung fertig beantwortet ist (Ergebnis-
+   Bildschirm erreicht), einmalig Name, Titel der Hörübung und Ergebnis ans
+   Google-Formular des jeweiligen Kapitels (nur wenn dafür entryTrack/entryResult
+   in FORM_CONFIG hinterlegt sind - aktuell nicht der Fall, daher no-op). */
+function sendHoerenBeacon(track, score, total){
+  const cfg = FORM_CONFIG[track.k];
+  if(!cfg || !cfg.entryTrack || !cfg.entryResult) return;
+  const params = new URLSearchParams();
+  params.append(cfg.entryName, state.name || "Unbekannt");
+  params.append(cfg.entryTrack, track.title);
+  params.append(cfg.entryResult, score + " von " + total + " richtig");
+  try{
+    if(navigator.sendBeacon){
+      navigator.sendBeacon(cfg.url, params);
+    } else {
+      fetch(cfg.url, {method:"POST", mode:"no-cors", body: params, keepalive:true});
+    }
+  }catch(e){ /* Übermittlung fehlgeschlagen - Übung läuft trotzdem normal weiter */ }
+}
+
+/* ---------------- SCHREIBEN -> Verlinkung zur Schreibtraining-App ----------------
+   Öffnet die separate Schreibtraining-App (schreibtraining.jurtzik-lernapps.de)
+   in einem neuen Tab und gibt Name, Kurs sowie - falls für das aktuelle Kapitel
+   hinterlegt - eine passende Aufgabe direkt mit (siehe Deep-Linking in deren app.js).
+   Ist für ein Kapitel noch keine Aufgabe hinterlegt, öffnet die Schreibtraining-App
+   ganz normal mit ihrer eigenen Aufgabenauswahl. */
+const SCHREIBTRAINING_BASE_URL = "https://schreibtraining.jurtzik-lernapps.de/";
+const SCHREIBTRAINING_KURS = "BSK-B2 Rottweil (KL T. Jurtzik)";
+/* Pro Kapitel eine oder mehrere passende Aufgaben-IDs aus der
+   Schreibtraining-App (tasks.js) hinterlegen. Bei mehreren IDs wird bei
+   jedem Aufruf zufällig eine davon ausgewählt. Ist für ein Kapitel noch
+   keine Aufgabe hinterlegt, öffnet die Schreibtraining-App ganz normal
+   mit ihrer eigenen Aufgabenauswahl.
+   Wie bei B1/BSK-B1+ vorerst nur Kapitel 1 komplett fertig - weitere
+   Kapitel ergänzen, sobald sie im Kurs dran sind. */
+const SCHREIBEN_TASK_BY_CHAPTER = {
+  1: ["b2-telc-002"] // Berufseinstieg & Unternehmen -> Stellungnahme: Homeoffice-Regelung
+};
+function openSchreibtraining(){
+  const params = new URLSearchParams();
+  if(state.name) params.set("name", state.name);
+  params.set("kurs", SCHREIBTRAINING_KURS);
+  let taskIds = SCHREIBEN_TASK_BY_CHAPTER[state.chapter];
+  if(taskIds && !Array.isArray(taskIds)) taskIds = [taskIds];
+  if(taskIds && taskIds.length){
+    const taskId = taskIds[Math.floor(Math.random() * taskIds.length)];
+    params.set("taskId", taskId);
+  }
+  window.open(SCHREIBTRAINING_BASE_URL + "?" + params.toString(), "_blank", "noopener");
+}
+
 /* ---------------- MENU -> SECTION PICKER ---------------- */
 document.querySelectorAll(".menu-item[data-go]").forEach(item=>{
   item.addEventListener("click", ()=>{
     const mode = item.getAttribute("data-go");
     if(mode === "wordlist"){ renderWordlist(); showScreen("wordlist"); return; }
     if(mode === "grammar" || mode.indexOf("grammar-") === 0){ showScreen(mode); return; }
+    if(mode === "schreiben"){ openSchreibtraining(); return; }
+    if(mode === "hoeren"){ renderTrackList(); showScreen("hoeren-list"); return; }
     openSectionPicker(mode);
   });
 });
