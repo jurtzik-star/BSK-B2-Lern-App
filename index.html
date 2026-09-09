@@ -550,6 +550,11 @@
         <h3>Schreiben</h3>
         <p>Bearbeite eine Schreibaufgabe und erhalte eine Rückmeldung.</p>
       </div>
+      <div class="menu-item" data-go="sprechen">
+        <span class="emoji">🗣️</span>
+        <h3>Sprechen</h3>
+        <p>Übe eine mündliche Prüfungsaufgabe im Gespräch mit einer KI und erhalte eine Rückmeldung.</p>
+      </div>
       <div class="menu-item" data-go="grammar" id="menuItemGrammar" style="display:none;grid-column:1/-1;">
         <span class="emoji">📐</span>
         <h3>Grammatik</h3>
@@ -7260,12 +7265,32 @@ function openSchreibtraining(){
   window.open(SCHREIBTRAINING_BASE_URL + "?" + params.toString(), "_blank", "noopener");
 }
 
+/* ---------------- SPRECHEN -> Verlinkung zur Sprechtraining-App ----------------
+   Öffnet die separate Sprechtraining-App (sprechtraining.jurtzik-lernapps.de)
+   in einem neuen Tab und gibt Name sowie Kurs direkt mit (siehe Deep-Linking
+   in deren app.js). Die TN wählen dort selbst zwischen den verfügbaren
+   Sprech-Themen (Teil 2: Bildbeschreibung, Teil 3: Gemeinsam planen). */
+const SPRECHTRAINING_BASE_URL = "https://sprechtraining.jurtzik-lernapps.de/";
+const SPRECHTRAINING_KURS = "BSK-B2 Rottweil (KL T. Jurtzik)";
+function openSprechtraining(){
+  const params = new URLSearchParams();
+  if(state.name) params.set("name", state.name);
+  params.set("kurs", SPRECHTRAINING_KURS);
+  window.open(SPRECHTRAINING_BASE_URL + "?" + params.toString(), "_blank", "noopener");
+}
+
 /* ---------------- NEUIGKEITEN ----------------
    Kurze, chronologische Liste, in der neue Funktionen der App kurz erklärt
    werden. Neuer Eintrag = einfach oben in NEWS ergänzen (neuestes zuerst).
    Solange der neueste Eintrag noch nicht angesehen wurde, zeigt die Kachel
    ein "NEU"-Badge (Speicherung pro Gerät im localStorage, keine Übertragung). */
 const NEWS = [
+  {
+    id: "2026-09-sprechen",
+    date: "September 2026",
+    title: "Neu: Mündliche Prüfung üben mit KI",
+    text: "Über die Kachel „🗣️ Sprechen“ kannst du jetzt mündliche Prüfungsaufgaben (Bildbeschreibung und gemeinsam etwas planen) im Chat mit einer KI üben und bekommst direkt eine Rückmeldung dazu."
+  },
   {
     id: "2026-09-hoeren-lesen",
     date: "September 2026",
@@ -7312,6 +7337,7 @@ document.querySelectorAll(".menu-item[data-go]").forEach(item=>{
     if(mode === "wordlist"){ currentExerciseMode = "wordlist"; renderWordlist(); showScreen("wordlist"); return; }
     if(mode === "grammar" || mode.indexOf("grammar-") === 0){ currentExerciseMode = "grammar"; showScreen(mode); return; }
     if(mode === "schreiben"){ openSchreibtraining(); return; }
+    if(mode === "sprechen"){ openSprechtraining(); return; }
     if(mode === "hoeren"){ currentExerciseMode = "hoeren"; renderTrackList(); showScreen("hoeren-list"); return; }
     if(mode === "lesen"){ currentExerciseMode = "lesen"; renderLesenTrackList(); showScreen("lesen-list"); return; }
     if(mode === "neuigkeiten"){ openNews(); return; }
