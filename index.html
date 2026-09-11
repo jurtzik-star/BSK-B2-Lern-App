@@ -432,6 +432,7 @@
         <span>📖 Lesen</span>
         <span>✍️ Schreiben</span>
         <span>🗣️ Sprechen</span>
+        <span>📔 Lerntagebuch</span>
       </div>
     </div>
     <a class="feedback-link" id="feedbackLink" target="_blank" rel="noopener"
@@ -558,6 +559,11 @@
         <span class="emoji">🗣️</span>
         <h3>Sprechen</h3>
         <p>Übe eine mündliche Prüfungsaufgabe im Gespräch mit einer KI und erhalte eine Rückmeldung.</p>
+      </div>
+      <div class="menu-item" data-go="lerntagebuch">
+        <span class="emoji">📔</span>
+        <h3>Lerntagebuch</h3>
+        <p>Halte kurz fest, was du gelernt hast, was schwierig war und was du als Nächstes üben möchtest.</p>
       </div>
       <div class="menu-item" data-go="grammar" id="menuItemGrammar" style="display:none;grid-column:1/-1;">
         <span class="emoji">📐</span>
@@ -7284,12 +7290,33 @@ function openSprechtraining(){
   window.open(SPRECHTRAINING_BASE_URL + "?" + params.toString(), "_blank", "noopener");
 }
 
+/* ---------------- LERNTAGEBUCH -> Verlinkung zur Lerntagebuch-App ----------------
+   Öffnet die separate Lerntagebuch-App (lerntagebuch.jurtzik-lernapps.de) in
+   einem neuen Tab und gibt Name sowie Kurs direkt mit (siehe Deep-Linking in
+   deren app.js). Dort halten die TN in eigenen Worten fest, was sie gelernt
+   haben, was schwierig war und was sie als Nächstes üben möchten (BAMF-
+   Kurskonzept Abschnitt 6, "Lernen mit digitalen Medien"). */
+const LERNTAGEBUCH_BASE_URL = "https://lerntagebuch.jurtzik-lernapps.de/";
+const LERNTAGEBUCH_KURS = "BSK-B2 Rottweil (KL T. Jurtzik)";
+function openLerntagebuch(){
+  const params = new URLSearchParams();
+  if(state.name) params.set("name", state.name);
+  params.set("kurs", LERNTAGEBUCH_KURS);
+  window.open(LERNTAGEBUCH_BASE_URL + "?" + params.toString(), "_blank", "noopener");
+}
+
 /* ---------------- NEUIGKEITEN ----------------
    Kurze, chronologische Liste, in der neue Funktionen der App kurz erklärt
    werden. Neuer Eintrag = einfach oben in NEWS ergänzen (neuestes zuerst).
    Solange der neueste Eintrag noch nicht angesehen wurde, zeigt die Kachel
    ein "NEU"-Badge (Speicherung pro Gerät im localStorage, keine Übertragung). */
 const NEWS = [
+  {
+    id: "2026-09-lerntagebuch",
+    date: "September 2026",
+    title: "Neu: Digitales Lerntagebuch",
+    text: "Über die Kachel „📔 Lerntagebuch“ kannst du nach jeder Einheit kurz festhalten, was du gelernt hast, was schwierig war und was du als Nächstes üben möchtest. Deine Einträge bleiben hier im Browser gespeichert und werden zur Nachbereitung an deine Lehrkraft übermittelt."
+  },
   {
     id: "2026-09-sprechen",
     date: "September 2026",
@@ -7343,6 +7370,7 @@ document.querySelectorAll(".menu-item[data-go]").forEach(item=>{
     if(mode === "grammar" || mode.indexOf("grammar-") === 0){ currentExerciseMode = "grammar"; showScreen(mode); return; }
     if(mode === "schreiben"){ openSchreibtraining(); return; }
     if(mode === "sprechen"){ openSprechtraining(); return; }
+    if(mode === "lerntagebuch"){ openLerntagebuch(); return; }
     if(mode === "hoeren"){ currentExerciseMode = "hoeren"; renderTrackList(); showScreen("hoeren-list"); return; }
     if(mode === "lesen"){ currentExerciseMode = "lesen"; renderLesenTrackList(); showScreen("lesen-list"); return; }
     if(mode === "neuigkeiten"){ openNews(); return; }
