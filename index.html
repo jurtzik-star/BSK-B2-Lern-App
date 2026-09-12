@@ -416,9 +416,29 @@
 
   .pt-status-msg{font-size:0.82rem;margin-top:8px;color:#6d7d72;}
   .pt-status-msg.pt-ok{color:var(--green-700);font-weight:700;}
+
+/* Vorschau-Modus (nur sichtbar mit ?vorschau=1 in der Adresse) */
+#vorschau-banner {
+  background: #fff3cd;
+  color: #664d03;
+  border-bottom: 2px solid #ffda6a;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+.chapter-card.preview { border-color: #ffb347; background: #fff8ec; }
+.chapter-card.preview .chapnum { background: #ffb347; color: #4a2e00; }
 </style>
 </head>
 <body>
+  <div id="vorschau-banner" class="hidden" role="status">
+    🔍 Vorschau-Modus – zeigt auch Kapitel, die für Teilnehmer:innen noch nicht freigeschaltet sind (🔒). Ohne "?vorschau=1" in der Adresse sehen TN nur das normal Freigeschaltete.
+  </div>
+
 <div class="app">
 
   <header class="top">
@@ -6165,6 +6185,17 @@ const CURRENT_CHAPTER = 1;
 /* Alle bereits gebauten Kapitel, aufsteigend. Neue Kapitel-Nummer hier
    ergänzen, sobald ihr Wortschatz oben in VOCAB usw. eingefügt wurde. */
 const RELEASED_CHAPTERS = [1, 2, 3, 4, 5, 6, 7, 8];
+const previewMode = new URLSearchParams(window.location.search).get("vorschau") === "1";
+if (previewMode) {
+  document.addEventListener("DOMContentLoaded", function () {
+    var b = document.getElementById("vorschau-banner");
+    if (b) b.classList.remove("hidden");
+  });
+  if (document.readyState === "interactive" || document.readyState === "complete") {
+    var b2 = document.getElementById("vorschau-banner");
+    if (b2) b2.classList.remove("hidden");
+  }
+}
 
 function shortTerm(t){
   let s = t.split(",")[0];
@@ -6497,13 +6528,17 @@ function buildChapterCard(k, isCurrent, isLocked){
   const meta = CHAPTER_META[k] || {title:"", themes:""};
   const wordCount = VOCAB.filter(v=>v.k===k).length;
   const card = document.createElement("div");
-  card.className = "chapter-card" + (isCurrent ? " current" : "") + (isLocked ? " locked" : "");
+  // Im Vorschau-Modus (?vorschau=1) bleibt die Karte optisch "gesperrt"
+  // erkennbar, ist aber anklickbar, damit Thomas den kompletten Stand selbst
+  // durchklicken kann, ohne dass TN etwas davon sehen (ohne den Parameter
+  // unverändertes Verhalten wie bisher).
+  card.className = "chapter-card" + (isCurrent ? " current" : "") + (isLocked && !previewMode ? " locked" : "") + (isLocked && previewMode ? " preview" : "");
   card.innerHTML =
     '<div class="chaphead"><span class="chapnum">' + k + '</span>' +
     '<span class="chaptitle">Kapitel ' + k + ' · ' + meta.title + '</span></div>' +
     '<p class="chapthemes">' + meta.themes + '</p>' +
-    '<p class="chapmeta">' + (isLocked ? "Kommt später" : (wordCount + ' Wörter' + (isCurrent ? "" : " · Wiederholung"))) + '</p>';
-  if(!isLocked){
+    '<p class="chapmeta">' + (isLocked ? (previewMode ? "🔒 Vorschau (noch nicht freigeschaltet)" : "Kommt später") : (wordCount + ' Wörter' + (isCurrent ? "" : " · Wiederholung"))) + '</p>';
+  if(!isLocked || previewMode){
     card.addEventListener("click", ()=> selectChapter(k));
   }
   return card;
