@@ -107,6 +107,17 @@
   .news-entry .news-date{font-size:0.76rem;color:#7c8b81;font-weight:700;letter-spacing:.03em;}
   .news-entry h3{margin:2px 0 4px;font-size:1rem;color:var(--green-900);}
   .news-entry p{margin:0;font-size:0.9rem;color:#3d4a41;}
+  .wissen-titel{font-size:1.2rem;font-weight:800;color:var(--green-900);margin:0 0 6px;}
+  .wissen-einleitung{font-size:0.9rem;color:#5b6d62;margin:0 0 16px;}
+  .wissen-wort{border-top:1px solid var(--green-100);padding:14px 0;}
+  .wissen-wort:first-child{border-top:none;padding-top:0;}
+  .wissen-wort .wort{font-weight:800;color:var(--green-900);font-size:1.05rem;margin-bottom:4px;}
+  .wissen-wort .erklaerung{font-size:0.92rem;color:#3d4a41;margin:0 0 8px;line-height:1.5;}
+  .wissen-beispiele{background:var(--green-50);border:2px dashed var(--green-500);border-radius:10px;padding:10px 14px 10px 30px;margin:0;}
+  .wissen-beispiele li{font-style:italic;color:var(--green-900);font-size:0.88rem;margin-bottom:5px;}
+  .wissen-beispiele li:last-child{margin-bottom:0;}
+  .wissen-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .wissen-counter{font-size:0.78rem;color:#7c8b81;font-weight:700;letter-spacing:.02em;}
   .pill{
     display:inline-block;background:var(--green-100);color:var(--green-900);
     border-radius:999px;padding:3px 12px;font-size:0.78rem;font-weight:700;letter-spacing:.02em;
@@ -537,6 +548,12 @@
         <p>Was ist neu in der App?</p>
         <span class="news-badge" id="newsBadge" style="display:none;">NEU</span>
       </div>
+      <div class="menu-item" data-go="wissen">
+        <span class="emoji">💡</span>
+        <h3>Gut zu wissen</h3>
+        <p>Feine Unterschiede zwischen ähnlichen Wörtern erklärt.</p>
+        <span class="news-badge" id="wissenBadge" style="display:none;">NEU</span>
+      </div>
       <div class="menu-item" data-go="flashcards">
         <span class="emoji">🗂️</span>
         <h3>Karteikarten</h3>
@@ -608,6 +625,24 @@
     </div>
     <div class="card" id="newsListWrap">
       <div id="newsList"></div>
+    </div>
+  </section>
+
+  <!-- GUT ZU WISSEN -->
+  <section id="screen-wissen" class="screen">
+    <div class="card">
+      <div class="topline" style="margin-bottom:0;">
+        <p style="margin:0;">💡 Gut zu wissen</p>
+        <button class="btn-ghost" data-back="menu" style="font-size:0.82rem;">← Zurück zum Menü</button>
+      </div>
+    </div>
+    <div class="card" id="wissenCardWrap">
+      <div id="wissenContent"></div>
+      <div class="wissen-nav">
+        <button class="btn-secondary" id="btnWissenPrev" style="font-size:0.85rem;">← Voriges Thema</button>
+        <span class="wissen-counter" id="wissenCounter"></span>
+        <button class="btn-secondary" id="btnWissenNext" style="font-size:0.85rem;">Nächstes Thema →</button>
+      </div>
     </div>
   </section>
 
@@ -8377,6 +8412,121 @@ function openNews(){
 }
 updateNewsBadge();
 
+/* ---------------- GUT ZU WISSEN ----------------
+   Feine Bedeutungsunterschiede zwischen ähnlichen Wörtern, zum
+   Durchblättern (ein Thema nach dem anderen). Neues Thema = einfach
+   oben in WISSEN ergänzen (neuestes zuerst) - gleiches Prinzip wie
+   bei NEWS oben. Jedes Thema: { id, date, titel, einleitung (optional),
+   woerter: [ { wort, erklaerung, beispiele: [...] }, ... ] }. */
+const WISSEN = [
+  {
+    id: "2026-09-guenstig-billig-lustig",
+    date: "September 2026",
+    titel: "günstig, billig, lustig",
+    einleitung: "Drei Adjektive, die man oft nur mit einer Bedeutung kennt – mit Herkunft und Beispielsätzen.",
+    woerter: [
+      {
+        wort: "günstig",
+        erklaerung: "Man lernt günstig meist in der Bedeutung von billig (bei Preisen: weniger teuer, als es sein könnte). Das kommt aus der Verkaufsrhetorik. Die eigentliche, ursprüngliche Bedeutung ist aber eine andere: günstig ist das Adjektiv zu Gunst – also positiv, vorteilhaft, passend.",
+        beispiele: [
+          "Die Idee zu dem Projekt hat die Gunst des Chefs.",
+          "Das Wetter ist für den Start der Rakete günstig.",
+          "Der Besuch in Wien ist eine günstige Gelegenheit, viel über Österreich zu erfahren.",
+          "Der Chef ist gut gelaunt. Der Augenblick ist günstig für unsere Frage."
+        ]
+      },
+      {
+        wort: "begünstigen",
+        erklaerung: "zum Vorteil von jemandem/etwas wirken. Achtung: begünstigen ist nicht dasselbe wie favorisieren (= bevorzugen, vorziehen).",
+        beispiele: [
+          "Die Nähe zur Autobahn begünstigt die Erreichbarkeit von München.",
+          "Übergewicht begünstigt die Entwicklung von Diabetes."
+        ]
+      },
+      {
+        wort: "billig",
+        erklaerung: "Heute meistens: nicht teuer – in jüngerer Entwicklung sogar abwertend: qualitativ minderwertig. Auch diese Bedeutung stammt aus der Verkaufsrhetorik. Erstaunlich: Vor 200 Jahren hatte billig eine positive Bedeutung (ungefähr: angemessen, vernünftig) – das findet man noch in der Juristensprache.",
+        beispiele: [
+          "Das Sofa kostet nur 700 Euro. Es ist sehr billig.",
+          "Politiker: „Die Argumente der Opposition sind zu billig!“",
+          "Rechtsanwalt: „Wir vertreten die Ansicht, dass mein Mandant recht und billig handelte.“ (= korrekt, so dass jeder vernünftige Mensch zustimmen könnte)",
+          "Der Täter nahm den Tod des Opfers billigend in Kauf. (= er kannte die Möglichkeit, und es war ihm egal)"
+        ]
+      },
+      {
+        wort: "billigen / missbilligen / verbilligen",
+        erklaerung: "billigen = gutheißen (etwas schwächer). missbilligen = die Negation davon. verbilligen = den Preis senken.",
+        beispiele: [
+          "China billigt die russische Außenpolitik weitgehend.",
+          "Der Großvater missbilligt die Langhaarfrisur seines Enkels.",
+          "Im Preiskampf verbilligt der Kosmetik-Hersteller sein Sortiment."
+        ]
+      },
+      {
+        wort: "lustig / -lustig",
+        erklaerung: "Heute meistens: spaßig, fröhlich. Seltener (und ursprünglich): Lust zu etwas haben. In zusammengesetzten Wörtern (z. B. abenteuerlustig) bedeutet -lustig immer noch \"Lust auf etwas haben\".",
+        beispiele: [
+          "Der Film ist lustig.",
+          "Die lustigen Freunde trinken zusammen Bier.",
+          "Heute fühle ich mich lustig, in dem guten Buch weiterzulesen.",
+          "Die Touristengruppe besteht aus jungen, abenteuerlustigen Leuten."
+        ]
+      }
+    ]
+  }
+];
+const WISSEN_SEEN_KEY = "bskb2_wissen_last_seen_id";
+let wissenIndex = 0;
+function renderWissenEntry(){
+  const entry = WISSEN[wissenIndex];
+  const content = document.getElementById("wissenContent");
+  if(!entry){ content.innerHTML = "<p>Bald gibt es hier die ersten Themen.</p>"; }
+  else{
+    let html = '<h3 class="wissen-titel">' + entry.titel + '</h3>';
+    if(entry.einleitung) html += '<p class="wissen-einleitung">' + entry.einleitung + '</p>';
+    entry.woerter.forEach(w=>{
+      html += '<div class="wissen-wort"><div class="wort">' + w.wort + '</div><p class="erklaerung">' + w.erklaerung + '</p>';
+      if(w.beispiele && w.beispiele.length){
+        html += '<ul class="wissen-beispiele">' + w.beispiele.map(b=>'<li>'+b+'</li>').join("") + '</ul>';
+      }
+      html += '</div>';
+    });
+    content.innerHTML = html;
+  }
+  const counter = document.getElementById("wissenCounter");
+  if(counter) counter.textContent = WISSEN.length ? ("Thema " + (wissenIndex+1) + " von " + WISSEN.length) : "";
+}
+function updateWissenBadge(){
+  const badge = document.getElementById("wissenBadge");
+  if(!badge) return;
+  let lastSeen = "";
+  try{ lastSeen = localStorage.getItem(WISSEN_SEEN_KEY) || ""; }catch(e){}
+  const hasUnread = WISSEN.length > 0 && WISSEN[0].id !== lastSeen;
+  badge.style.display = hasUnread ? "inline-block" : "none";
+}
+function openWissen(){
+  wissenIndex = 0;
+  renderWissenEntry();
+  showScreen("wissen");
+  if(WISSEN.length > 0){
+    try{ localStorage.setItem(WISSEN_SEEN_KEY, WISSEN[0].id); }catch(e){}
+  }
+  updateWissenBadge();
+}
+const btnWissenPrev = document.getElementById("btnWissenPrev");
+const btnWissenNext = document.getElementById("btnWissenNext");
+if(btnWissenPrev) btnWissenPrev.addEventListener("click", ()=>{
+  if(!WISSEN.length) return;
+  wissenIndex = (wissenIndex - 1 + WISSEN.length) % WISSEN.length;
+  renderWissenEntry();
+});
+if(btnWissenNext) btnWissenNext.addEventListener("click", ()=>{
+  if(!WISSEN.length) return;
+  wissenIndex = (wissenIndex + 1) % WISSEN.length;
+  renderWissenEntry();
+});
+updateWissenBadge();
+
 /* ---------------- MENU -> SECTION PICKER ---------------- */
 document.querySelectorAll(".menu-item[data-go]").forEach(item=>{
   item.addEventListener("click", ()=>{
@@ -8389,6 +8539,7 @@ document.querySelectorAll(".menu-item[data-go]").forEach(item=>{
     if(mode === "hoeren"){ currentExerciseMode = "hoeren"; renderTrackList(); showScreen("hoeren-list"); return; }
     if(mode === "lesen"){ currentExerciseMode = "lesen"; renderLesenTrackList(); showScreen("lesen-list"); return; }
     if(mode === "neuigkeiten"){ openNews(); return; }
+    if(mode === "wissen"){ openWissen(); return; }
     openSectionPicker(mode);
   });
 });
