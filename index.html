@@ -49,15 +49,21 @@
     margin-left:8px;vertical-align:2px;
   }
   header.top .pill-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
-  header.top .feedback-link{
+  header.top .header-actions{
     margin-left:auto;flex:none;align-self:flex-start;
-    display:inline-flex;align-items:center;gap:6px;
-    background:rgba(255,255,255,0.22);color:#fff;text-decoration:none;
-    border-radius:999px;padding:7px 13px;font-size:0.78rem;font-weight:700;
-    white-space:nowrap;transition:background .15s;
+    display:flex;flex-direction:column;gap:8px;align-items:stretch;
   }
+  header.top .feedback-link, header.top .hausaufgaben-link{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    text-decoration:none;border:none;cursor:pointer;font-family:inherit;
+    border-radius:999px;padding:7px 13px;font-size:0.78rem;font-weight:700;
+    white-space:nowrap;transition:background .15s,transform .1s;
+  }
+  header.top .feedback-link{background:rgba(255,255,255,0.22);color:#fff;}
   header.top .feedback-link:hover{background:rgba(255,255,255,0.34);}
-  @media print{header.top .feedback-link{display:none !important;}}
+  header.top .hausaufgaben-link{background:var(--red);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.18);}
+  header.top .hausaufgaben-link:hover{background:#a8473d;transform:translateY(-1px);}
+  @media print{header.top .header-actions{display:none !important;}}
   header.top .pill-row span{
     display:inline-flex;align-items:center;gap:5px;
     background:rgba(255,255,255,0.2);border-radius:999px;padding:3px 11px;font-size:0.76rem;font-weight:700;
@@ -467,8 +473,11 @@
         <span>📔 Lerntagebuch</span>
       </div>
     </div>
-    <a class="feedback-link" id="feedbackLink" target="_blank" rel="noopener"
-       href="https://docs.google.com/forms/d/e/1FAIpQLSfPVgOJH4fXEBupxhMjcUXaosruoDl_n5BtzJE4LW1sJmth2A/viewform">💬 Feedback</a>
+    <div class="header-actions">
+      <a class="feedback-link" id="feedbackLink" target="_blank" rel="noopener"
+         href="https://docs.google.com/forms/d/e/1FAIpQLSfPVgOJH4fXEBupxhMjcUXaosruoDl_n5BtzJE4LW1sJmth2A/viewform">💬 Feedback</a>
+      <button class="hausaufgaben-link" id="btnHausaufgaben" type="button">🛑 Hausaufgaben</button>
+    </div>
   </header>
 
   <!-- START SCREEN -->
@@ -626,6 +635,20 @@
     </div>
     <div class="card" id="newsListWrap">
       <div id="newsList"></div>
+    </div>
+  </section>
+
+  <!-- HAUSAUFGABEN -->
+  <section id="screen-hausaufgaben" class="screen">
+    <div class="card">
+      <div class="topline" style="margin-bottom:0;">
+        <p style="margin:0;">🛑 Hausaufgaben</p>
+        <button class="btn-ghost" data-back="menu" style="font-size:0.82rem;">← Zurück zum Menü</button>
+      </div>
+    </div>
+    <div class="card" id="hausaufgabenListWrap">
+      <p id="hausaufgabenEmpty" class="hint-text" style="display:none;text-align:left;margin:0;">Aktuell sind keine Hausaufgaben eingetragen. Schau nach der nächsten Unterrichtsstunde hier wieder vorbei.</p>
+      <div id="hausaufgabenList"></div>
     </div>
   </section>
 
@@ -8381,6 +8404,12 @@ function openLerntagebuch(){
    ein "NEU"-Badge (Speicherung pro Gerät im localStorage, keine Übertragung). */
 const NEWS = [
   {
+    id: "2026-09-hausaufgaben",
+    date: "September 2026",
+    title: "Neu: Hausaufgaben im Blick",
+    text: "Über den roten Button „🛑 Hausaufgaben“ im Kopfbereich siehst du auf einen Blick, welche Hausaufgaben deine Lehrkraft nach der letzten Stunde für dich eingetragen hat."
+  },
+  {
     id: "2026-09-lerntagebuch",
     date: "September 2026",
     title: "Neu: Digitales Lerntagebuch",
@@ -8430,6 +8459,43 @@ function openNews(){
   updateNewsBadge();
 }
 updateNewsBadge();
+
+/* ---------------- HAUSAUFGABEN ----------------
+   Kurze, chronologische Liste (neuestes zuerst), ähnlich wie NEWS oben.
+   Anders als bei den anderen Fertigkeiten wird das hier bewusst nicht pro
+   Kapitel gepflegt, sondern einfach fortlaufend: Thomas schickt nach jeder
+   Unterrichtsstunde im Chat durch, was die Hausaufgabe ist, ein neuer
+   Eintrag kommt dann hier oben in HAUSAUFGABEN dazu (mit aktuellem Datum).
+   Der Button im Header ist bewusst dauerhaft rot/auffällig (kein
+   "gelesen/ungelesen"-Badge nötig wie bei Neuigkeiten - er soll die TN
+   einfach regelmäßig ans Nachschauen erinnern). */
+const HAUSAUFGABEN = [
+  // Beispiel für einen Eintrag, sobald die erste Hausaufgabe drankommt:
+  // { date: "22. September 2026", text: "Kapitel 1, Seite 12-14: Übung 3 und 4 schriftlich." }
+];
+function renderHausaufgaben(){
+  const wrap = document.getElementById("hausaufgabenList");
+  const emptyMsg = document.getElementById("hausaufgabenEmpty");
+  wrap.innerHTML = "";
+  if(HAUSAUFGABEN.length === 0){
+    emptyMsg.style.display = "block";
+    return;
+  }
+  emptyMsg.style.display = "none";
+  HAUSAUFGABEN.forEach(entry=>{
+    const div = document.createElement("div");
+    div.className = "news-entry";
+    div.innerHTML =
+      '<div class="news-date">' + entry.date + '</div>' +
+      '<p>' + entry.text + '</p>';
+    wrap.appendChild(div);
+  });
+}
+function openHausaufgaben(){
+  renderHausaufgaben();
+  showScreen("hausaufgaben");
+}
+document.getElementById("btnHausaufgaben").addEventListener("click", openHausaufgaben);
 
 /* ---------------- GUT ZU WISSEN ----------------
    Feine Bedeutungsunterschiede zwischen ähnlichen Wörtern, zum
