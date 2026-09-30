@@ -6476,9 +6476,16 @@ document.getElementById("btnClearData").addEventListener("click", ()=>{
   }
 });
 
+/* Ein "vollständiger" Name braucht mindestens zwei durch Leerzeichen
+   getrennte Teile (Vor- und Nachname) - reines "ist nicht leer" reicht
+   nicht, sonst landen Einzelnamen wie "Cristian" in den Formularen/der
+   Übersicht und lassen sich dort nicht mehr eindeutig zuordnen. */
+function isVollstaendigerName(value){
+  return value.trim().split(/\s+/).filter(Boolean).length >= 2;
+}
 document.getElementById("inpName").addEventListener("input", ()=>{
   const inp = document.getElementById("inpName");
-  if(inp.value.trim()){
+  if(isVollstaendigerName(inp.value)){
     inp.classList.remove("input-error");
     document.getElementById("nameError").style.display = "none";
   }
@@ -6487,7 +6494,7 @@ document.getElementById("inpName").addEventListener("input", ()=>{
 document.getElementById("btnStart").addEventListener("click", ()=>{
   const nameInput = document.getElementById("inpName");
   const name = nameInput.value.trim();
-  if(!name){
+  if(!isVollstaendigerName(name)){
     nameInput.classList.add("input-error","shake");
     document.getElementById("nameError").style.display = "block";
     nameInput.focus();
