@@ -450,6 +450,31 @@
 }
 .chapter-card.preview { border-color: #ffb347; background: #fff8ec; }
 .chapter-card.preview .chapnum { background: #ffb347; color: #4a2e00; }
+  /* ---- Ampel-Status auf der Kapitel-Übersicht ---- */
+  #ampelCard .ampel-title{margin:0 0 8px;font-weight:700;color:var(--green-900);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;}
+  #ampelCard .ampel-sum{font-weight:400;font-size:0.82rem;color:#5b6d62;}
+  .ampel-row{display:flex;flex-wrap:wrap;gap:6px;}
+  .ampel-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:0.82rem;font-weight:600;cursor:pointer;border:1.5px solid;background:#fff;font-family:inherit;}
+  .ampel-chip .ampel-detail{font-weight:400;opacity:.8;}
+  .ampel-chip.ampel-rot{border-color:#e6b3ae;color:#8f3a31;background:#fbf1f0;}
+  .ampel-chip.ampel-gelb{border-color:#ecd18a;color:#7a5a00;background:#fdf7e6;}
+  .ampel-chip.ampel-gruen{border-color:#a9d2bb;color:var(--green-900);background:var(--green-50);}
+  .ampel-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:#bbb;}
+  .ampel-rot .ampel-dot, .ampel-dot.ampel-rot{background:#c9483d;}
+  .ampel-gelb .ampel-dot, .ampel-dot.ampel-gelb{background:#e0a800;}
+  .ampel-gruen .ampel-dot, .ampel-dot.ampel-gruen{background:#3f9a68;}
+  .ampel-legend{margin:8px 0 0;font-size:0.75rem;color:#6d7d72;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;}
+  .ampel-legend .ampel-dot{width:8px;height:8px;margin-left:4px;}
+  .ampel-tile-dot{position:absolute;top:14px;right:14px;width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 3px #fff;}
+  .ampel-tile-dot.ampel-rot{background:#c9483d;}
+  .ampel-tile-dot.ampel-gelb{background:#e0a800;}
+  .ampel-tile-dot.ampel-gruen{background:#3f9a68;}
+  .ampel-done-btn{margin-top:8px;font-size:0.78rem;font-family:inherit;padding:4px 10px;border-radius:999px;border:1.5px solid #ecd18a;background:#fdf7e6;color:#7a5a00;cursor:pointer;}
+  .ampel-zeit{margin:10px 0 0;padding-top:8px;border-top:1px solid var(--green-100);font-size:0.85rem;color:var(--green-900);}
+  .ampel-mini{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:0.78rem;color:#5b6d62;}
+  .ampel-mini-dots{display:inline-flex;gap:4px;}
+  .ampel-mini .ampel-dot{width:9px;height:9px;}
+  .ampel-done-btn.is-done{border-color:#a9d2bb;background:var(--green-50);color:var(--green-900);}
 </style>
 </head>
 <body>
@@ -6472,6 +6497,7 @@ function updateFeedbackLink(name){
 document.getElementById("btnClearData").addEventListener("click", ()=>{
   if(confirm("Möchtest du wirklich alle auf diesem Gerät gespeicherten Daten (Name, Sprache, deine Übersetzungen, deine Ergebnisse) löschen?")){
     try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    try{ localStorage.removeItem(STORAGE_KEY + "_ampel_v1"); localStorage.removeItem(STORAGE_KEY + "_lernzeit_v1"); localStorage.removeItem(STORAGE_KEY + "_anwesenheit_v1"); }catch(e){}
     location.reload();
   }
 });
@@ -8410,6 +8436,12 @@ function openLerntagebuch(){
   const params = new URLSearchParams();
   if(state.name) params.set("name", state.name);
   params.set("kurs", LERNTAGEBUCH_KURS);
+  // Kapitel + automatisch gemessene Gesamt-Lernzeit (Minuten) in diesem
+  // Kapitel mitgeben - das Lerntagebuch füllt daraus die Übungszeit vor.
+  if(state.chapter != null){
+    params.set("kapitel", String(state.chapter));
+    if(typeof lernzeitMinuten === "function") params.set("lernzeit", String(lernzeitMinuten()));
+  }
   window.open(LERNTAGEBUCH_BASE_URL + "?" + params.toString(), "_blank", "noopener");
 }
 
@@ -8419,6 +8451,18 @@ function openLerntagebuch(){
    Solange der neueste Eintrag noch nicht angesehen wurde, zeigt die Kachel
    ein "NEU"-Badge (Speicherung pro Gerät im localStorage, keine Übertragung). */
 const NEWS = [
+  {
+    id: "2026-09-lernzeit-automatisch",
+    date: "September 2026",
+    title: "Neu: Deine Übungszeit wird automatisch gezählt",
+    text: "Die App zählt jetzt mit, wie lange du in jedem Kapitel aktiv übst. Du siehst es oben in der Kapitel-Übersicht (⏱). Wenn du danach das 📔 Lerntagebuch öffnest, ist die Übungszeit schon eingetragen. Du musst sie nicht mehr selbst schätzen. Zeit in Schreiben oder Sprechen kannst du dort einfach dazurechnen."
+  },
+  {
+    id: "2026-09-ampel-status",
+    date: "September 2026",
+    title: "Neu: Ampel zeigt deinen Stand",
+    text: "Oben in der Kapitel-Übersicht siehst du jetzt für jeden Lernbereich eine Ampel: 🔴 noch nicht begonnen, 🟡 begonnen, 🟢 erledigt. Beim Wortschatz wird es grün, wenn du alle Teile der Karteikarten (A, B … und „Alle Wörter“) einmal durchgearbeitet hast. Bei Schreiben, Sprechen und Lerntagebuch setzt du das Häkchen „erledigt“ selbst auf der Kachel."
+  },
   {
     id: "2026-09-hausaufgaben",
     date: "September 2026",
@@ -12364,6 +12408,367 @@ function pt2SendResults() {
 document.getElementById("pt2-btn-start").addEventListener("click", pt2StartTest);
 document.getElementById("pt2-btn-send").addEventListener("click", pt2SendResults);
 document.getElementById("pt2-btn-restart").addEventListener("click", ()=> location.reload());
+
+/* ---------------- LERNZEIT automatisch messen (für das Lerntagebuch) ----------------
+   Zählt nur AKTIVE Übungszeit pro Kapitel: Tab sichtbar, ein Kapitel ist
+   gewählt und die/der TN hat in den letzten 3 Minuten etwas getan (tippen,
+   klicken, scrollen) oder es läuft gerade ein Hör-Audio. Ein offen
+   gelassener Tab zählt also nicht weiter. Gespeichert nur lokal in diesem
+   Browser; beim Öffnen des Lerntagebuchs wird die Summe für das aktuelle
+   Kapitel per Link mitgegeben, dort wird die Übungszeit dann vorausgefüllt.
+   (Zeit in Schreibtraining/Sprechtraining läuft in eigenen Apps und wird
+   hier nicht mitgezählt.) */
+const LERNZEIT_STORAGE_KEY = STORAGE_KEY + "_lernzeit_v1";
+const LERNZEIT_TICK_SEK = 15;
+const LERNZEIT_INAKTIV_SEK = 180;
+let lernzeitData = {};
+try{ lernzeitData = JSON.parse(localStorage.getItem(LERNZEIT_STORAGE_KEY) || "{}") || {}; }catch(e){ lernzeitData = {}; }
+let lernzeitLastActivity = Date.now();
+["pointerdown","keydown","touchstart","scroll","input"].forEach(ev=>
+  document.addEventListener(ev, ()=>{ lernzeitLastActivity = Date.now(); }, {passive:true, capture:true}));
+function lernzeitAudioLaeuft(){
+  return Array.from(document.querySelectorAll("audio")).some(a => !a.paused && !a.ended);
+}
+setInterval(()=>{
+  if(document.hidden || state.chapter == null) return;
+  const aktiv = (Date.now() - lernzeitLastActivity) < LERNZEIT_INAKTIV_SEK*1000 || lernzeitAudioLaeuft();
+  if(!aktiv) return;
+  const k = String(state.chapter);
+  // Vor dem Hochzählen den aktuellen Stand neu lesen: Ist die App in mehreren
+  // Tabs offen, würden sich die Tabs sonst gegenseitig die Zeit überschreiben.
+  try{ lernzeitData = JSON.parse(localStorage.getItem(LERNZEIT_STORAGE_KEY) || "{}") || lernzeitData; }catch(e){}
+  lernzeitData[k] = (lernzeitData[k] || 0) + LERNZEIT_TICK_SEK;
+  try{ localStorage.setItem(LERNZEIT_STORAGE_KEY, JSON.stringify(lernzeitData)); }catch(e){}
+}, LERNZEIT_TICK_SEK*1000);
+function lernzeitMinuten(k){
+  try{ lernzeitData = JSON.parse(localStorage.getItem(LERNZEIT_STORAGE_KEY) || "{}") || lernzeitData; }catch(e){}
+  return Math.floor((lernzeitData[String(k == null ? state.chapter : k)] || 0) / 60);
+}
+
+/* ---------------- ANWESENHEIT IM UNTERRICHT (aus Thomas' Google Formular) ----------------
+   Thomas trägt nach jeder Stunde Datum, Kapitel, UE und die Anwesenden in ein
+   Google Formular ein. Ein Apps Script an der (privaten) Antwort-Tabelle gibt
+   für den angefragten Namen nur dessen eigene Termine zurück (Einrichtung:
+   siehe Apps/Anwesenheit/README.md). Solange ANWESENHEIT_URL leer ist, ist die
+   Funktion einfach ausgeblendet. Letzter Stand wird lokal zwischengespeichert,
+   damit die Anzeige auch ohne Netz/bei langsamer Antwort sofort da ist. */
+const ANWESENHEIT_URL = "";
+const ANWESENHEIT_SECRET = "wkmoiPCmQJYD50mDGNLflW0TPxgBfQLf";
+const ANWESENHEIT_CACHE_KEY = STORAGE_KEY + "_anwesenheit_v1";
+const ANWESENHEIT_NEU_LADEN_MS = 5*60*1000;
+let anwesenheitCache = null;
+try{ anwesenheitCache = JSON.parse(localStorage.getItem(ANWESENHEIT_CACHE_KEY) || "null"); }catch(e){ anwesenheitCache = null; }
+let anwesenheitLaedt = false;
+function anwesenheitFuerMich(){
+  if(!ANWESENHEIT_URL || !anwesenheitCache || !state.name) return null;
+  if(anwesenheitCache.name !== state.name.trim().toLowerCase()) return null;
+  return anwesenheitCache.termine || [];
+}
+function ladeAnwesenheit(){
+  if(!ANWESENHEIT_URL || !state.name || anwesenheitLaedt) return;
+  const name = state.name.trim().toLowerCase();
+  if(anwesenheitCache && anwesenheitCache.name === name && Date.now() - anwesenheitCache.stand < ANWESENHEIT_NEU_LADEN_MS) return;
+  anwesenheitLaedt = true;
+  const params = new URLSearchParams({secret: ANWESENHEIT_SECRET, name: state.name});
+  fetch(ANWESENHEIT_URL + "?" + params.toString())
+    .then(r => r.json())
+    .then(d => {
+      if(!d || !d.ok || !Array.isArray(d.termine)) return;
+      anwesenheitCache = {name, stand: Date.now(), termine: d.termine};
+      try{ localStorage.setItem(ANWESENHEIT_CACHE_KEY, JSON.stringify(anwesenheitCache)); }catch(e){}
+      const aktiv = document.querySelector(".screen.active");
+      if(aktiv && aktiv.id === "screen-menu") renderAmpel();
+      if(aktiv && aktiv.id === "screen-chapters") renderChapterPicker();
+    })
+    .catch(()=>{ /* offline o. Ä. - dann bleibt der letzte Stand stehen */ })
+    .finally(()=>{ anwesenheitLaedt = false; });
+}
+function anwesenheitKapitel(k){
+  const t = anwesenheitFuerMich();
+  if(!t) return null;
+  const imKapitel = t.filter(x => x.kapitel === Number(k));
+  if(!imKapitel.length) return {termine:0, da:0, ue:0};
+  const da = imKapitel.filter(x => x.anwesend);
+  return {termine: imKapitel.length, da: da.length, ue: da.reduce((s,x)=> s + (Number(x.ue)||0), 0)};
+}
+function zeitZeileHtml(k){
+  const teile = [];
+  const a = anwesenheitKapitel(k);
+  if(a && a.termine > 0){
+    teile.push("🏫 Unterricht: " + a.da + " von " + a.termine + " Terminen da (" + a.ue + " UE)");
+  }
+  teile.push("⏱ " + lernzeitMinuten(k) + " Min. selbst geübt");
+  return teile.join(" · ");
+}
+(function(){
+  ["selectChapter","renderChapterPicker"].forEach(fn=>{
+    const orig = window[fn];
+    if(typeof orig !== "function") return;
+    window[fn] = function(){ const r = orig.apply(this, arguments); try{ ladeAnwesenheit(); }catch(e){} return r; };
+  });
+})();
+
+/* ---------------- AMPEL-STATUS (Fortschritt je Lernbereich) ----------------
+   Zeigt auf der Kapitel-Übersicht pro Lernbereich, wie weit TN schon sind:
+   🔴 noch nicht begonnen · 🟡 begonnen · 🟢 erledigt.
+   Regeln:
+   - Wortschatz: Grün, wenn bei den Karteikarten jeder Teil (A, B, … und
+     "Alle Wörter") einmal komplett durchgearbeitet wurde. Artikel-Quiz,
+     Lücken füllen und Zuordnen zählen als "begonnen" (Gelb).
+   - Grammatik: gleiches Prinzip - alle Teile (A, B, … + "Alle") einmal
+     abgeschlossen = Grün. Bei Kapiteln mit Themen-Untermenü (BSK-B2) zählt
+     jedes geöffnete Thema inkl. Kapitel-Mix (dort gibt es keine
+     automatische Auswertung).
+   - Hören / Lesen: alle Übungen des Kapitels einmal bis zum Ergebnis
+     bearbeitet = Grün, mindestens eine = Gelb.
+   - Schreiben / Sprechen / Lerntagebuch laufen in eigenen Apps: Antippen der
+     Kachel = Gelb, TN setzt selbst das Häkchen "erledigt" = Grün.
+   Gespeichert wird nur lokal in diesem Browser (eigener Schlüssel, damit das
+   bestehende Speicherformat unverändert bleibt). */
+const AMPEL_STORAGE_KEY = STORAGE_KEY + "_ampel_v1";
+let ampelData = {};
+try{ ampelData = JSON.parse(localStorage.getItem(AMPEL_STORAGE_KEY) || "{}") || {}; }catch(e){ ampelData = {}; }
+function ampelSave(){
+  try{ localStorage.setItem(AMPEL_STORAGE_KEY, JSON.stringify(ampelData)); }catch(e){}
+}
+function ampelCh(k){
+  const key = String(k == null ? state.chapter : k);
+  if(!ampelData[key]) ampelData[key] = {};
+  return ampelData[key];
+}
+function ampelMark(group, key, value){
+  if(state.chapter == null) return;
+  const c = ampelCh();
+  if(key === undefined){ c[group] = value === undefined ? true : value; }
+  else {
+    if(!c[group] || typeof c[group] !== "object") c[group] = {};
+    c[group][key] = value === undefined ? true : value;
+  }
+  ampelSave();
+}
+
+/* ---- Hooks in die bestehenden Übungen (ohne deren Code zu verändern) ---- */
+let ampelGramSec = null;
+function ampelWrap(name, before){
+  const orig = window[name];
+  if(typeof orig !== "function") return;
+  window[name] = function(){ try{ before.apply(this, arguments); }catch(e){} return orig.apply(this, arguments); };
+}
+ampelWrap("startFlashcards", ()=> ampelMark("vocabTouched"));
+ampelWrap("startArticleQuiz", ()=> ampelMark("vocabTouched"));
+ampelWrap("startGapFill", ()=> ampelMark("vocabTouched"));
+ampelWrap("startMatching", ()=> ampelMark("vocabTouched"));
+ampelWrap("startGrammar", (sec)=>{ ampelGramSec = sec; ampelMark("gramTouched"); });
+ampelWrap("saveScore", (mode)=>{
+  if(mode === "fc") ampelMark("fc", state.fcSection);
+  if(mode === "gram" && ampelGramSec) ampelMark("gram", ampelGramSec);
+});
+ampelWrap("sendHoerenBeacon", (track)=>{ if(track && track.id) ampelMark("hoeren", track.id); });
+ampelWrap("sendLesenBeacon", (track)=>{ if(track && track.id) ampelMark("lesen", track.id); });
+function ampelMarkOpened(area){
+  const c = ampelCh();
+  if(c[area] !== "done") ampelMark(area, undefined, "open");
+}
+ampelWrap("openSchreibtraining", ()=> ampelMarkOpened("schreiben"));
+ampelWrap("openSprechtraining", ()=> ampelMarkOpened("sprechen"));
+ampelWrap("openLerntagebuch", ()=> ampelMarkOpened("lerntagebuch"));
+ampelWrap("showScreen", (id)=>{
+  if(typeof id === "string" && id.indexOf("grammar-") === 0) ampelMark("gramTopics", id);
+});
+/* Nach jedem Bildschirmwechsel ins Menü die Ampel neu zeichnen. */
+(function(){
+  const orig = window.showScreen;
+  window.showScreen = function(id){
+    const r = orig.apply(this, arguments);
+    if(id === "menu"){ try{ renderAmpel(); }catch(e){} }
+    return r;
+  };
+})();
+
+/* ---- Status je Lernbereich berechnen ---- */
+function ampelSections(k){
+  const labels = SECTION_LABELS_BY_CHAPTER[k == null ? state.chapter : k] || {};
+  return Object.keys(labels).filter(s => s !== "ALL");
+}
+function ampelStatus(doneCount, total, touched){
+  if(total === 0) return null; // für dieses Kapitel nicht vorhanden
+  if(doneCount >= total) return "gruen";
+  if(doneCount > 0 || touched) return "gelb";
+  return "rot";
+}
+function ampelCompute(kArg){
+  const k = kArg == null ? state.chapter : kArg;
+  const c = ampelCh(k);
+  const out = {};
+
+  // Wortschatz (Karteikarten: jeder Teil + "Alle")
+  let vocSecs = ampelSections(k).filter(s => poolIndices(k, s).length > 0);
+  if(vocSecs.length) vocSecs = vocSecs.concat(["ALL"]);
+  const fcDone = vocSecs.filter(s => c.fc && c.fc[s]).length;
+  out.wortschatz = {status: ampelStatus(fcDone, vocSecs.length, c.vocabTouched), detail: fcDone + "/" + vocSecs.length};
+
+  // Grammatik
+  const topicMenu = document.getElementById("grammarMenuCh" + k);
+  if(topicMenu){
+    const topics = Array.from(topicMenu.querySelectorAll(".menu-item[data-go]")).map(el => el.getAttribute("data-go"));
+    const gDone = topics.filter(t => c.gramTopics && c.gramTopics[t]).length;
+    out.grammatik = {status: ampelStatus(gDone, topics.length, false), detail: gDone + "/" + topics.length};
+  } else if(typeof GRAMMAR_ITEMS !== "undefined" && document.querySelector('.menu-item[data-go="grammar"]')){
+    let gSecs = ampelSections(k).filter(s => GRAMMAR_ITEMS.some(g => g.k === k && g.s === s));
+    if(gSecs.length) gSecs = gSecs.concat(["ALL"]);
+    const gDone = gSecs.filter(s => c.gram && c.gram[s]).length;
+    out.grammatik = {status: ampelStatus(gDone, gSecs.length, c.gramTouched), detail: gDone + "/" + gSecs.length};
+  } else {
+    out.grammatik = {status: null};
+  }
+
+  // Hören / Lesen
+  const hTracks = LISTENING_TRACKS.filter(t => t.k === k);
+  const hDone = hTracks.filter(t => c.hoeren && c.hoeren[t.id]).length;
+  out.hoeren = {status: ampelStatus(hDone, hTracks.length, false), detail: hDone + "/" + hTracks.length};
+  const lTracks = LESEN_TRACKS.filter(t => t.k === k);
+  const lDone = lTracks.filter(t => c.lesen && c.lesen[t.id]).length;
+  out.lesen = {status: ampelStatus(lDone, lTracks.length, false), detail: lDone + "/" + lTracks.length};
+
+  // Externe Apps
+  ["schreiben","sprechen","lerntagebuch"].forEach(a=>{
+    out[a] = {status: c[a] === "done" ? "gruen" : c[a] === "open" ? "gelb" : "rot", detail: ""};
+  });
+  return out;
+}
+
+/* ---- Anzeige ---- */
+const AMPEL_AREAS = [
+  {key:"wortschatz",   label:"Wortschatz",   tile:"flashcards"},
+  {key:"grammatik",    label:"Grammatik",    tile:"grammar"},
+  {key:"hoeren",       label:"Hören",        tile:"hoeren"},
+  {key:"lesen",        label:"Lesen",        tile:"lesen"},
+  {key:"schreiben",    label:"Schreiben",    tile:"schreiben",    manual:true},
+  {key:"sprechen",     label:"Sprechen",     tile:"sprechen",     manual:true},
+  {key:"lerntagebuch", label:"Lerntagebuch", tile:"lerntagebuch", manual:true}
+];
+const AMPEL_TEXT = {rot:"noch nicht begonnen", gelb:"begonnen", gruen:"erledigt"};
+function ampelMenuTile(tileKey){
+  return document.querySelector('#screen-menu .menu-item[data-go="' + tileKey + '"]');
+}
+function renderAmpel(){
+  if(state.chapter == null) return;
+  const res = ampelCompute();
+  let card = document.getElementById("ampelCard");
+  if(!card){
+    card = document.createElement("div");
+    card.id = "ampelCard";
+    card.className = "card";
+    const grid = document.querySelector("#screen-menu .menu-grid");
+    grid.parentNode.insertBefore(card, grid);
+  }
+  let chips = "";
+  let greenCount = 0, total = 0;
+  AMPEL_AREAS.forEach(a=>{
+    const r = res[a.key];
+    if(!r || !r.status) return;
+    total++;
+    if(r.status === "gruen") greenCount++;
+    chips += '<button type="button" class="ampel-chip ampel-' + r.status + '" data-ampel-tile="' + a.tile + '" title="' + a.label + ': ' + AMPEL_TEXT[r.status] + '">' +
+      '<span class="ampel-dot" aria-hidden="true"></span>' + a.label +
+      (r.detail ? ' <span class="ampel-detail">' + r.detail + '</span>' : '') +
+      (r.status === "gruen" ? ' ✓' : '') + '</button>';
+  });
+  card.innerHTML =
+    '<p class="ampel-title">🚦 Dein Stand in Kapitel ' + state.chapter + ' <span class="ampel-sum">' + greenCount + ' von ' + total + ' Bereichen erledigt</span></p>' +
+    '<div class="ampel-row">' + chips + '</div>' +
+    '<p class="ampel-legend"><span class="ampel-dot ampel-rot"></span> noch nicht begonnen ' +
+    '<span class="ampel-dot ampel-gelb"></span> begonnen <span class="ampel-dot ampel-gruen"></span> erledigt</p>' +
+    '<p class="ampel-zeit">' + zeitZeileHtml(state.chapter) + '</p>';
+  card.querySelectorAll("[data-ampel-tile]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const tile = ampelMenuTile(btn.getAttribute("data-ampel-tile"));
+      if(tile) tile.click();
+    });
+  });
+
+  // Punkt + ggf. Häkchen direkt auf den Kacheln
+  AMPEL_AREAS.forEach(a=>{
+    const tile = ampelMenuTile(a.tile);
+    if(!tile) return;
+    let dot = tile.querySelector(".ampel-tile-dot");
+    let doneBtn = tile.querySelector(".ampel-done-btn");
+    const r = res[a.key];
+    if(!r || !r.status){
+      if(dot) dot.remove();
+      if(doneBtn) doneBtn.remove();
+      return;
+    }
+    if(!dot){
+      dot = document.createElement("span");
+      tile.appendChild(dot);
+    }
+    dot.className = "ampel-tile-dot ampel-" + r.status;
+    dot.title = a.label + ": " + AMPEL_TEXT[r.status] + (r.detail ? " (" + r.detail + ")" : "");
+    dot.setAttribute("aria-label", dot.title);
+    if(a.manual){
+      if(r.status === "rot"){
+        if(doneBtn) doneBtn.remove();
+      } else {
+        if(!doneBtn){
+          doneBtn = document.createElement("button");
+          doneBtn.type = "button";
+          doneBtn.className = "ampel-done-btn";
+          doneBtn.addEventListener("click", (ev)=>{
+            ev.stopPropagation();
+            const c = ampelCh();
+            ampelMark(a.key, undefined, c[a.key] === "done" ? "open" : "done");
+            renderAmpel();
+          });
+          tile.appendChild(doneBtn);
+        }
+        doneBtn.textContent = r.status === "gruen" ? "✓ Erledigt (zurücknehmen)" : "☐ Als erledigt markieren";
+        doneBtn.classList.toggle("is-done", r.status === "gruen");
+      }
+    }
+  });
+}
+if(state.chapter != null){ try{ renderAmpel(); }catch(e){} }
+
+/* ---- Mini-Fortschritt auf der Kapitel-Auswahl ----
+   Jede freigeschaltete Kapitelkarte bekommt eine Zeile mit einem Punkt pro
+   Lernbereich (gleiche Ampel-Farben wie in der Übersicht) plus
+   "x von y Bereichen erledigt". */
+function ampelMiniHtml(k){
+  const res = ampelCompute(k);
+  let dots = "", green = 0, total = 0, started = 0;
+  AMPEL_AREAS.forEach(a=>{
+    const r = res[a.key];
+    if(!r || !r.status) return;
+    total++;
+    if(r.status === "gruen") green++;
+    if(r.status !== "rot") started++;
+    dots += '<span class="ampel-dot ampel-' + r.status + '" title="' + a.label + ': ' + AMPEL_TEXT[r.status] + '"></span>';
+  });
+  const txt = started === 0 ? "noch nicht begonnen"
+            : green === total ? "alle " + total + " Bereiche erledigt 🎉"
+            : green + " von " + total + " Bereichen erledigt";
+  const a = anwesenheitKapitel(k);
+  const extra = (a && a.termine > 0) ? " · 🏫 " + a.ue + " UE" : "";
+  const zeit = lernzeitMinuten(k) > 0 ? " · ⏱ " + lernzeitMinuten(k) + " Min." : "";
+  return '<span class="ampel-mini-dots" aria-hidden="true">' + dots + '</span><span class="ampel-mini-text">' + txt + extra + zeit + '</span>';
+}
+(function(){
+  const orig = window.buildChapterCard;
+  if(typeof orig !== "function") return;
+  window.buildChapterCard = function(k, isCurrent, isLocked){
+    const card = orig.apply(this, arguments);
+    try{
+      if(!isLocked || (typeof previewMode !== "undefined" && previewMode)){
+        const line = document.createElement("p");
+        line.className = "ampel-mini";
+        line.innerHTML = ampelMiniHtml(k);
+        card.appendChild(line);
+      }
+    }catch(e){}
+    return card;
+  };
+})();
 </script>
 </body>
 </html>
